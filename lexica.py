@@ -1,19 +1,15 @@
-# This is the world class. It is supposed to represent worlds in the model
-# , along with their attributes (mostly orders of worth).
-# The orders of worth have to be set manually right now, but once we have
-# all the properties we're interested in along with the orders of worth, we can
-# easily generate a world only using its name.
+# This is the lexica class. Given a lexicon name it will basically generate
+# a table containing the truth-values for a given utterance.
 
-class World:
-    def __init__(self, world_name) -> None:
-        self.world_name = world_name
-        self.__world_construction()
-        self.order_of_worth = [self.properties[0], self.properties[1]]
+class Lex:
+    def __init__(self, utterances) -> None:
+        self.utterances = utterances
+        self.__lex_construction()
 
-    def __world_construction(self):
+    def __lex_construction(self):
 
         def __industrial():
-            self.properties = ["competent", "incompetent"]
+            self.semantics = ["competent", "incompetent"]
             self.interpretation_function = {"ing": [self.properties[0]],
                                             "in": [self.properties[1]]}
         def __civic():
@@ -41,7 +37,7 @@ class World:
             "fame": __fame,
         }
 
-        return wc.get(self.world_name, "Not a valid world name.")()
+        return wc.get(self.lex_name, "Not a valid world name.")()
 
 # This class is the priors, it is a special kind of dictionary to make it
 # easy to store the priors for each player in the correct format.

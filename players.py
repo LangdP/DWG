@@ -1,6 +1,6 @@
 from math import exp
 from helpers import *
-from worlds import *
+from lexica import *
 
 # This is our Player class. I assume that from a cognitive standpoint it makes
 # sense that all players have access to literal meanings, so I put them there
