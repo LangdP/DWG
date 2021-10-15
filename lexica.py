@@ -1,5 +1,6 @@
 # This is the Lexicon class. It serves as a basis for semantic and social
 # lexica.
+# All lexica are kinds of dictionaries under the hood
 class Lexicon:
     def __init__(self, utt_dic) -> None:
         self._utt_dic = utt_dic
@@ -44,13 +45,12 @@ class Pers(Lexicon):
 # This class is the priors, it is a special kind of dictionary to make it
 # easy to store the priors for each player in the correct format.
 
-
 class Priors:
     def __init__(self, world_priors, pers_priors) -> None:
         self.world_priors = world_priors
-        self.prop_priors = pers_priors
+        self.pers_priors = pers_priors
         self.priors = {}
         for world in world_priors:
-            self.priors[world] = [world_priors[world],
-                                  {pers: prob for pers, prob in pers_priors.items()
-                                   if pers in World(world).properties}]
+            self.priors['worlds'][world] = world_priors[world]
+        for pers in pers_priors:
+            self.priors['personae'][pers] = pers_priors[pers]
