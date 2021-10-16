@@ -13,34 +13,65 @@ from viz import *
 # For listener i
 # Define priors over possible worlds here, they have to add up to 1.
 world_priors_i = {
-    "r" : 0.5,
-    "nr" : 0.5
+    "wR" : 0.5,
+    "wNR" : 0.5
 }
 
 # Define priors over personae here. They have to add up to 1.
 pers_priors_i = {
-    "rc" : 0.5,
-    "nrc" : 0.5
+    "piRC" : 0.5,
+    "piNRC" : 0.5
+}
+
+delta_soc_i = {
+    "soc_RC": 0.5,
+    "soc_NRC": 0.5
+}
+
+pi_lex_i = {
+    "piRC": {
+        "lex_RC": 1,
+        "lex_NRC": 0
+    },
+    "piNRC": {
+        "lex_RC": 0,
+        "lex_NRC": 1
+    }
 }
 
 # Build priors as an instance of the Priors class.
-priors_i = Priors(world_priors_i, pers_priors_i)
+priors_i = Priors(world_priors_i, pers_priors_i, delta_soc_i, pi_lex_i)
 
 # For listener j
 # Define priors over possible worlds here, they have to add up to 1.
 world_priors_j = {
-    "r" : 0.5,
-    "nr" : 0.5
+    "wR" : 0.5,
+    "wNR" : 0.5
 }
 
 # Define priors over personae here. They have to add up to 1.
 pers_priors_j = {
-    "rc" : 0.5,
-    "nrc" : 0.5
+    "piRC" : 0.5,
+    "piNRC" : 0.5
 }
 
+delta_soc_j = {
+    "soc_RC": 0.5,
+    "soc_NRC": 0.5
+}
+
+pi_lex_j = {
+    "piRC": {
+        "lex_RC": 0,
+        "lex_NRC": 1 
+    },
+    "piNRC": {
+        "lex_RC": 0,
+        "lex_NRC": 1
+    }
+}
 # Build priors as an instance of the Priors class.
-priors_j = Priors(world_priors_j, pers_priors_j)
+priors_j = Priors(world_priors_j, pers_priors_j, delta_soc_j, pi_lex_j)
 
 # We then need a set of messages along with their interpretation from a
 # lexical standpoint (Lex object) and the social meaning standpoint
@@ -48,31 +79,35 @@ priors_j = Priors(world_priors_j, pers_priors_j)
 
 utterances_nrc = {
     "mR" : {
-        "worlds" : ["r"],
-        "personae" : ["rc"]
+        "worlds" : ["wR"],
+        "personae" : ["piRC"]
     }, 
     "mNR" : {
-        "worlds" : ["nr"],
-        "personae" : ["nrc", "rc"]
+        "worlds" : ["wNR"],
+        "personae" : ["piNRC", "piRC"]
     }, 
     "mDW" : {
-        "worlds" : ["nr"],
-        "personae" : ["nrc", "rc"]
+        "worlds" : ["wNR"],
+        "personae" : ["piNRC", "piRC"]
     } 
     }
 
 utterances_rc = {
     "mR" : {
-        "worlds" : ["r"],
-        "personae" : ["rc"]
+        "worlds" : ["wR"],
+        "personae" : ["piRC"]
     }, 
     "mNR" : {
-        "worlds" : ["nr"],
-        "personae" : ["nrc", "rc"]
+        "worlds" : ["wNR"],
+        "personae" : ["piNRC", "piRC"]
     }, 
     "mDW" : {
-        "worlds" : ["r", "nr"],
-        "personae" : ["rc"]
+        "worlds" : ["wR", "wNR"],
+        "personae" : ["piRC"]
     } 
     }
-# We construct our Speaker and Listener objects using our priors.
+
+# Constructing lexica and storing in lists
+
+socs = [Pers(utterances_rc, "soc_RC"), Pers(utterances_nrc, "soc_NRC")]
+lexs = [Lex(utterances_rc, "lex_RC"), Lex(utterances_nrc, "lex_NRC")]

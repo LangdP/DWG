@@ -1,25 +1,60 @@
+# These are our player classes. They are divided into two main subclasses, 
+# Listener and Speaker. These two are themselves divided into many subclasses
+# Reflecting the various configurations of the game that are presented in the 
+# dissertation.
+
+# IMPORT PACKAGES
 from math import exp
 from helpers import *
 from lexica import *
 
 # This is our Player class. I assume that from a cognitive standpoint it makes
-# sense that all players have access to literal meanings, so I put them there
-# Otherwise not very interesting
+# sense that all players have access to the literal listener, so this is 
+# essentially a literal listener.
+# All players are constructed with priors that are Priors objects. 
+# Those priors are envisioned as the priors of the literal listener in the model.
 class Player:
     def __init__(self, priors) -> None:
         # These are the full priors for the player, the .priors attr
         # of a Priors object
         self.priors = priors.priors
 
-    def conditionalization(self, world, prop, utt):
-        wworld = World(world)
+    def l0_interpretation(self, lexs : list, socs : list, world : str, utt : str):
+        l0_w_given_m = sum([self.lex_choice(l, socs, utt) * 
+        self.lexicalized_content_interpretation(l, world, utt) for l in lexs])
+        return l0_w_given_m
 
-        def interpret(utt, prop): return 1 \
-            if prop in wworld.interpretation_function[utt]\
-            else 0
-        prop_given_mw = ((interpret(utt, prop))
-                         / (sum([interpret(utt, prop) for prop in wworld.properties])))
-        return prop_given_mw
+    def lexicalized_content_interpretation(self, lex : Lex, world : str, utt : str):
+        lex_w_given_m = ((self._sem_interpret(utt, world, lex))
+                         / (sum([self._sem_interpret(utt, w, lex) 
+                         for w in self.priors['worlds'].keys()])))
+        return lex_w_given_m
+
+    def lex_choice(self, lex : Lex, socs : list, utt : str):
+        personae = self.priors['personae'].keys()
+        lex_given_m = sum([self.general_social_interpretation(p, utt, socs) *
+        self.priors['pi_lex'][p][lex.name] for p in personae])
+        return lex_given_m
+
+    def general_social_interpretation(self, pers, utt, socs : list):
+        pi_given_m = sum([self.lexicalized_social_interpretation(s, pers, utt) *
+        self.priors['delta_soc'][s.name] for s in socs])
+        return pi_given_m
+        
+
+    def lexicalized_social_interpretation(self, soc, pers, utt):
+        soc_pi_given_m = ((self._soc_interpret(utt, pers, soc))
+                         / (sum([self._soc_interpret(utt, p, soc) 
+                         for p in self.priors['personae'].keys()])))
+        return soc_pi_given_m
+
+    def _soc_interpret(self, utt, i, inters : Pers): return 1 \
+        if i in inters._Pers__social_meaning[utt]\
+        else 0
+
+    def _sem_interpret(self, utt, i, inters : Lex): return 1 \
+        if i in inters._Lex__semantics[utt]\
+        else 0
 
 
 # This is the Speaker class, it takes a world and a temperature parameter as
@@ -30,7 +65,7 @@ class Speaker(Player):
         self.alpha = alpha
 
     def utility(self, world, prop, utt):
-        return my_log(self.conditionalization(world, prop, utt) * self.priors[world][0])
+        return my_log(self.literal_content_interpretation(world, prop, utt) * self.priors[world][0])
 
     def choice_rule(self, world, utt, messages, prop):
         return (exp(self.alpha * self.utility(world, prop, utt))
