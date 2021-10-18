@@ -57,39 +57,117 @@ class Player:
         else 0
 
 
-# This is the Speaker class, it takes a world and a temperature parameter as
-# arguments. It inherits the literal interpretations from the player class.
-class Speaker(Player):
-    def __init__(self, priors, alpha) -> None:
+# This is the HonestNdivSpeaker class, it takes a world and a temperature parameter as
+# arguments. It inherits all the interpretations from the Player class. 
+# This class is only there to represent a somewhat standard speaker in the 
+# Dogwhistle Game, that is a speaker that is not duplicitous and 
+# assumes a homogeneous crowd. It is the simplest form of speaker. Other speakers
+# are generalizations of this one.
+
+class HonestNdivSpeaker(Player):
+    def __init__(self, priors : Priors, alpha : float) -> None:
         super().__init__(priors)
         self.alpha = alpha
+        #self.beta = beta
 
-    def utility(self, world, prop, utt):
-        return my_log(self.literal_content_interpretation(world, prop, utt) * self.priors[world][0])
+    def general_div_utility(self, world : str, pers : str, utt : str, 
+    socs : list, lexs : list):
+        return my_log(self.general_social_interpretation(pers, utt, socs) + 
+                self.l0_interpretation(lexs, socs, world, utt))
 
-    def choice_rule(self, world, utt, messages, prop):
-        return (exp(self.alpha * self.utility(world, prop, utt))
-                / sum([exp(self.alpha * self.utility(world, prop, message)) for message in messages]))
+    def smg_like_utility(self, pers : str, utt : str, 
+    socs : list):
+        return my_log(self.general_social_interpretation(pers, utt, socs))
 
-    def prediction(self, world, messages):
-        props = World(world).properties
-        preds = {p:
-                 {m: self.choice_rule(world, m, messages, p)
-                  for m in messages}
-                 for p in props}
-        return preds
+    def rsa_like_utility(self, world : str, utt : str, 
+    lexs : list, socs :list):
+        return my_log(self.l0_interpretation(lexs, socs, world, utt))
 
-    def full_predictions(self, messages):
-        preds = {}
-        for w in self.priors:
-            props = World(w).properties
-            preds[w] =  [self.priors[w][0],
-                        {p:
-                        {m: self.choice_rule(w, m, messages, p)
-                        for m in messages}
-                        for p in props}
-                        ]
-        return preds
+    def choice_rule(self, world : str, pers : str, utt : str, 
+    lexs : list, socs : list):
+        messages = list(lexs[0]._utt_dic.keys())
+        return (exp(
+            self.alpha * self.general_div_utility(world, pers, utt, socs, lexs)
+            )
+                / sum(
+                    [exp(
+                        self.alpha * self.general_div_utility(world, pers, m, socs, lexs))
+                        for m in messages]
+                 )
+                )
+
+#    def prediction(self, world, messages):
+#        props = World(world).properties
+#        preds = {p:
+#                 {m: self.choice_rule(world, m, messages, p)
+#                  for m in messages}
+#                 for p in props}
+#        return preds
+#
+#    def full_predictions(self, messages):
+#        preds = {}
+#        for w in self.priors:
+#            props = World(w).properties
+#            preds[w] =  [self.priors[w][0],
+#                        {p:
+#                        {m: self.choice_rule(w, m, messages, p)
+#                        for m in messages}
+#                        for p in props}
+#                        ]
+#        return preds
+
+# This is the honest speaker adressing a diverse crowd. Basically, 
+# this speaker takes into account the fact that the crowd is not homogeneous,
+# but it does not rely on personal preferences to choose messages, only on the 
+# state of the world (and their own 'real' persona).
+class HonestDivSpeaker(HonestNdivSpeaker):
+    def __init__(self, priors_list : list, alpha : float, naive_type = 0) -> None:
+        super().__init__(priors_list[naive_type], alpha)
+        self.priors_list = priors_list
+        self.alpha = alpha
+        self.listeners = {}
+        for i in range(len(priors_list)):
+            self.listeners[str(i)] = Player(priors_list[i])
+
+        #self.beta = beta
+
+    def general_div_utility(self, world : str, pers : str, utt : str, 
+    socs : list, lexs : list):
+        utility = []
+        for lis in self.listeners:
+            utility.append(
+                my_log(
+                    self.listeners[lis].general_social_interpretation(pers, utt, socs) +
+                    self.listeners[lis].l0_interpretation(lexs, socs, world, utt)
+                )
+            )
+        return sum(utility)
+
+    def smg_like_div_utility(self, pers : str, utt : str, 
+    socs : list):
+        utility = []
+        for lis in self.listeners:
+            utility.append(
+                my_log(self.listeners[lis].general_social_interpreation(pers, utt, socs))
+                )
+        return sum(utility)
+
+    def rsa_like_div_utility(self, world : str, utt : str, 
+    lexs : list, socs :list):
+        utility = []
+        for lis in self.listeners:
+            utility.append(
+                my_log(self.listeners[lis].l0_interpretation(lexs, socs, world, utt))
+                )
+        return sum(utility)
+
+    def div_choice_rule(self, world : str, pers : str, utt : str, 
+    lexs : list, socs : list):
+        messages = list(lexs[0]._utt_dic.keys())
+        return (exp(self.alpha * self.general_div_utility(world, pers, utt, socs, lexs))
+                / sum([exp(self.alpha * self.general_div_utility(world, pers, m, socs, lexs))
+                 for m in messages]))
+
 
 # This is the Li for  {m: self.choice_rule(world, m, messages, p)p in props}stener class. Not much to say here except that this layout makes
 # it clear that the l  for m in messages}istener envisions the speaker as belonging to the same
