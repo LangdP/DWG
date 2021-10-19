@@ -14,7 +14,7 @@ from lexica import *
 # All players are constructed with priors that are Priors objects. 
 # Those priors are envisioned as the priors of the literal listener in the model.
 class Player:
-    def __init__(self, priors) -> None:
+    def __init__(self, priors : Priors) -> None:
         # These are the full priors for the player, the .priors attr
         # of a Priors object
         self.priors = priors.priors
@@ -95,6 +95,20 @@ class HonestNdivSpeaker(Player):
                         for m in messages]
                  )
                 )
+    def message_choice(self, utt : str, 
+                        lexs : list, socs : list):
+        contexts = list_paired_keys(self.priors["worlds"], 
+                                    self.priors["personae"])
+        prob = []
+        arguments = ["world", "pers"]
+        for c in contexts:
+            temp_args = {"utt": utt, 
+                        "lexs" : lexs, 
+                        "socs": socs}
+            for k in range(len(arguments)):
+                temp_args[arguments[k]] = c[k]
+            prob.append((self.choice_rule(**temp_args) * (1/len(contexts))))
+        return sum(prob)
 
 #    def prediction(self, world, messages):
 #        props = World(world).properties
@@ -168,6 +182,20 @@ class HonestDivSpeaker(HonestNdivSpeaker):
                 / sum([exp(self.alpha * self.general_div_utility(world, pers, m, socs, lexs))
                  for m in messages]))
 
+    def div_message_choice(self, utt : str, 
+                        lexs : list, socs : list):
+        contexts = list_paired_keys(self.priors["worlds"], 
+                                    self.priors["personae"])
+        prob = []
+        arguments = ["world", "pers"]
+        for c in contexts:
+            temp_args = {"utt": utt, 
+                        "lexs" : lexs, 
+                        "socs": socs}
+            for k in range(len(arguments)):
+                temp_args[arguments[k]] = c[k]
+            prob.append((self.div_choice_rule(**temp_args) * (1/len(contexts))))
+        return sum(prob)
 
 # This is the Li for  {m: self.choice_rule(world, m, messages, p)p in props}stener class. Not much to say here except that this layout makes
 # it clear that the l  for m in messages}istener envisions the speaker as belonging to the same
