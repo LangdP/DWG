@@ -24,8 +24,8 @@ pers_priors_i = {
 }
 
 delta_soc_i = {
-    "soc_RC": 0.5,
-    "soc_NRC": 0.5
+    "soc_RC": 1,
+    "soc_NRC": 0
 }
 
 pi_lex_i = {
@@ -56,8 +56,8 @@ pers_priors_j = {
 }
 
 delta_soc_j = {
-    "soc_RC": 0.5,
-    "soc_NRC": 0.5
+    "soc_RC": 0,
+    "soc_NRC": 1
 }
 
 pi_lex_j = {
@@ -111,3 +111,15 @@ utterances_rc = {
 
 socs = [Pers(utterances_rc, "soc_RC"), Pers(utterances_nrc, "soc_NRC")]
 lexs = [Lex(utterances_rc, "lex_RC"), Lex(utterances_nrc, "lex_NRC")]
+
+# Constructing speaker preferences
+world_preferences = preferences_generation(list(world_priors_i.keys()),
+                                            preferred_states=[["wR", "wNR"]],
+                                            dispreferred_states=[["wNR", "wR"],
+                                                                 ["wR", "wR"]]
+                                             )
+personae_preferences = preferences_generation(list(pers_priors_i.keys()),
+                                            preferred_states=[["piRC", "piNRC"]],
+                                            dispreferred_states=[["piNRC", "piRC"],
+                                                                 ["piRC", "piRC"]]
+                                                                 )

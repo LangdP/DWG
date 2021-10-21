@@ -4,6 +4,7 @@
 # dissertation.
 
 # IMPORT PACKAGES
+from itertools import product
 from math import exp
 from helpers import *
 from lexica import *
@@ -70,7 +71,7 @@ class HonestNdivSpeaker(Player):
         self.alpha = alpha
         #self.beta = beta
 
-    def general_div_utility(self, world : str, pers : str, utt : str, 
+    def general_dup_utility(self, world : str, pers : str, utt : str, 
     socs : list, lexs : list):
         return my_log(self.general_social_interpretation(pers, utt, socs) + 
                 self.l0_interpretation(lexs, socs, world, utt))
@@ -87,11 +88,11 @@ class HonestNdivSpeaker(Player):
     lexs : list, socs : list):
         messages = list(lexs[0]._utt_dic.keys())
         return (exp(
-            self.alpha * self.general_div_utility(world, pers, utt, socs, lexs)
+            self.alpha * self.general_dup_utility(world, pers, utt, socs, lexs)
             )
                 / sum(
                     [exp(
-                        self.alpha * self.general_div_utility(world, pers, m, socs, lexs))
+                        self.alpha * self.general_dup_utility(world, pers, m, socs, lexs))
                         for m in messages]
                  )
                 )
@@ -139,11 +140,7 @@ class HonestDivSpeaker(HonestNdivSpeaker):
         super().__init__(priors_list[naive_type], alpha)
         self.priors_list = priors_list
         self.alpha = alpha
-        self.listeners = {}
-        for i in range(len(priors_list)):
-            self.listeners[str(i)] = Player(priors_list[i])
-
-        #self.beta = beta
+        self.listeners = [Player(p) for p in priors_list]
 
     def general_div_utility(self, world : str, pers : str, utt : str, 
     socs : list, lexs : list):
@@ -151,8 +148,8 @@ class HonestDivSpeaker(HonestNdivSpeaker):
         for lis in self.listeners:
             utility.append(
                 my_log(
-                    self.listeners[lis].general_social_interpretation(pers, utt, socs) +
-                    self.listeners[lis].l0_interpretation(lexs, socs, world, utt)
+                    lis.general_social_interpretation(pers, utt, socs) +
+                    lis.l0_interpretation(lexs, socs, world, utt)
                 )
             )
         return sum(utility)
@@ -196,6 +193,111 @@ class HonestDivSpeaker(HonestNdivSpeaker):
                 temp_args[arguments[k]] = c[k]
             prob.append((self.div_choice_rule(**temp_args) * (1/len(contexts))))
         return sum(prob)
+
+class DupSpeaker(HonestNdivSpeaker):
+    def __init__(self, priors_list : list, 
+    worlds_preferences : dict,
+    personae_preferences : dict,
+    alpha = 1, 
+    alpha_bis = 1, 
+    beta = 1, 
+    beta_bis = 1, 
+    naive_type = 0) -> None:
+        super().__init__(priors_list[naive_type], alpha)
+        self.priors_list = priors_list
+        self.alpha = alpha
+        self.alpha_bis = alpha_bis
+        self.beta = beta
+        self.beta_bis = beta_bis
+        self.worlds_preferences = worlds_preferences
+        self.personae_preferences = personae_preferences
+        self.listeners = [Player(p) for p in priors_list]
+
+    def general_dup_utility(self, worlds : list, perss : list, utt : str, 
+    socs : list, lexs : list):
+        utility = []
+        for l in range(len(self.listeners)):
+            lis = self.listeners[l]
+            utility.append(
+                my_log(
+                    lis.general_social_interpretation(perss[l], utt, socs) +
+                    lis.l0_interpretation(lexs, socs, worlds[l], utt)
+                )
+            )
+        return sum(utility)
+
+#    def smg_like_div_utility(self, pers : str, utt : str, 
+#    socs : list):
+#        utility = []
+#        for lis in self.listeners:
+#            utility.append(
+#                my_log(self.listeners[lis].general_social_interpreation(pers, utt, socs))
+#                )
+#        return sum(utility)
+#
+#    def rsa_like_div_utility(self, world : str, utt : str, 
+#    lexs : list, socs :list):
+#        utility = []
+#        for lis in self.listeners:
+#            utility.append(
+#                my_log(self.listeners[lis].l0_interpretation(lexs, socs, world, utt))
+#                )
+#        return sum(utility)
+
+    def dup_choice_rule(self, worlds : list, perss : list, utt : str, 
+    lexs : list, socs : list):
+        messages = list(lexs[0]._utt_dic.keys())
+        return (exp(self.alpha * self.general_dup_utility(worlds, perss, utt, socs, lexs))
+                / sum([exp(self.alpha * self.general_dup_utility(worlds, perss, m, socs, lexs))
+                 for m in messages]))
+
+    def _normalize(self, vals : list):
+        sm_vals = []
+        for v in vals:
+            sm_vals.append(
+                v/(sum([vv for vv in vals]))
+                )
+        return sm_vals
+    
+    def _create_contexts(self):
+        world_states = [self.worlds_preferences[w]["state"] 
+                        for w in self.worlds_preferences]
+        pers_states = [self.personae_preferences[w]["state"] 
+                        for w in self.personae_preferences]
+        contexts = list(product(world_states, pers_states))
+        return contexts
+
+    
+    def _softmax_preferences(self):
+        contexts = self._create_contexts()
+        context_scores = [
+            exp(self.alpha_bis * self.worlds_preferences[str(c[0])]["score"]) +
+            exp(self.beta_bis * self.personae_preferences[str(c[1])]["score"]) 
+            for c in contexts
+        ]
+        sm_context_scores = self._normalize(context_scores)
+        sm_context_scores_dict = {}
+        for c, s in zip(contexts, sm_context_scores):
+            sm_context_scores_dict[str(c)] = s
+
+        return sm_context_scores_dict
+
+    def dup_message_choice(self, utt : str, 
+                        lexs : list, socs : list):
+        contexts = self._create_contexts()
+        sm_preferences = self._softmax_preferences()
+        prob = []
+        arguments = ["worlds", "perss"]
+        for c in contexts:
+            temp_args = {"utt": utt, 
+                        "lexs" : lexs, 
+                        "socs": socs}
+            for k in range(len(arguments)):
+                temp_args[arguments[k]] = c[k]
+            prob.append((self.dup_choice_rule(**temp_args) * sm_preferences[str(c)]))
+        return sum(prob)
+
+
 
 # This is the Li for  {m: self.choice_rule(world, m, messages, p)p in props}stener class. Not much to say here except that this layout makes
 # it clear that the l  for m in messages}istener envisions the speaker as belonging to the same
