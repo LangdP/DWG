@@ -71,7 +71,7 @@ class HonestNdivSpeaker(Player):
         self.alpha = alpha
         #self.beta = beta
 
-    def general_dup_utility(self, world : str, pers : str, utt : str, 
+    def general_utility(self, world : str, pers : str, utt : str, 
     socs : list, lexs : list):
         return my_log(self.general_social_interpretation(pers, utt, socs) + 
                 self.l0_interpretation(lexs, socs, world, utt))
@@ -88,11 +88,11 @@ class HonestNdivSpeaker(Player):
     lexs : list, socs : list):
         messages = list(lexs[0]._utt_dic.keys())
         return (exp(
-            self.alpha * self.general_dup_utility(world, pers, utt, socs, lexs)
+            self.alpha * self.general_utility(world, pers, utt, socs, lexs)
             )
                 / sum(
                     [exp(
-                        self.alpha * self.general_dup_utility(world, pers, m, socs, lexs))
+                        self.alpha * self.general_utility(world, pers, m, socs, lexs))
                         for m in messages]
                  )
                 )
@@ -226,24 +226,6 @@ class DupSpeaker(HonestNdivSpeaker):
             )
         return sum(utility)
 
-#    def smg_like_div_utility(self, pers : str, utt : str, 
-#    socs : list):
-#        utility = []
-#        for lis in self.listeners:
-#            utility.append(
-#                my_log(self.listeners[lis].general_social_interpreation(pers, utt, socs))
-#                )
-#        return sum(utility)
-#
-#    def rsa_like_div_utility(self, world : str, utt : str, 
-#    lexs : list, socs :list):
-#        utility = []
-#        for lis in self.listeners:
-#            utility.append(
-#                my_log(self.listeners[lis].l0_interpretation(lexs, socs, world, utt))
-#                )
-#        return sum(utility)
-
     def dup_choice_rule(self, worlds : list, perss : list, utt : str, 
     lexs : list, socs : list):
         messages = list(lexs[0]._utt_dic.keys())
@@ -262,8 +244,8 @@ class DupSpeaker(HonestNdivSpeaker):
     def _create_contexts(self):
         world_states = [self.worlds_preferences[w]["state"] 
                         for w in self.worlds_preferences]
-        pers_states = [self.personae_preferences[w]["state"] 
-                        for w in self.personae_preferences]
+        pers_states = [self.personae_preferences[p]["state"] 
+                        for p in self.personae_preferences]
         contexts = list(product(world_states, pers_states))
         return contexts
 
@@ -299,40 +281,47 @@ class DupSpeaker(HonestNdivSpeaker):
 
 
 
-# This is the Li for  {m: self.choice_rule(world, m, messages, p)p in props}stener class. Not much to say here except that this layout makes
-# it clear that the l  for m in messages}istener envisions the speaker as belonging to the same
-# world as them, whicfor p in props}h is not necessarily true and something we might want
-# to play with once we have more of an idea how clashes work.
-# In any case, each listener envisions their own player.
+# This is the Listener class.
+# Each listener envisions their own player.
 
 
 class Listener(Player):
-    def __init__(self, priors, alpha, beta) -> None:
+    def __init__(self, 
+    priors : Priors, 
+    alpha = 1, 
+    beta = 1) -> None:
         super().__init__(priors)
-        self._speaker = Speaker(priors, alpha)
+        self._speaker = HonestNdivSpeaker(priors, alpha)
         self.alpha = alpha
         self.beta = beta
 
-    def lis(self, world, prop, utt, messages):
-        return ((self.priors[world][1][prop] * self._speaker.choice_rule(world, utt, messages, prop)) /
-                sum([self.priors[world][1][p] * self._speaker.choice_rule(world, utt, messages, p)
-                     for p in World(world).properties]))
+    def l1_world_interpretation(self, lexs : list, socs : list, world : str, utt : str):
+        l1_w_given_m = sum([self._speaker.choice_rule(world, p, utt, lexs, socs) * 
+                        self.priors["worlds"][world]
+                        for p in self.priors["personae"].keys()]) / \
+                        sum(
+                            [
+                            sum([self._speaker.choice_rule(w, p, utt, lexs, socs) *
+                            self.priors["worlds"][world]
+                            for p in self.priors["personae"].keys()])
+                            for w in self.priors["worlds"].keys()
+                        ]
+                        )
+        return l1_w_given_m
 
-    def update_world_priors(self, utt, messages):
-        scores = []
-        for w in self.priors:
-            for p in World(w).properties:
-                if World(w).order_of_worth.index(p) == 0:
-                    score = self.priors[w][0] + self.priors[w][0] * \
-                        self.lis(w, p, utt, messages)
-                else:
-                    pass
-            scores.append(score)
-        i = 0
-        for w in self.priors:
-            self.priors[w][0] = (exp(self.beta * scores[i]) /
-                                 sum([exp(self.beta * score) for score in scores]))
-            i += 1
+    def l1_pers_interpretation(self, lexs : list, socs : list, pers : str, utt : str):
+        l1_p_given_m = sum([self._speaker.choice_rule(w, pers, utt, lexs, socs) * 
+                        self.priors["personae"][pers]
+                        for w in self.priors["worlds"].keys()]) / \
+                        sum(
+                            [
+                            sum([self._speaker.choice_rule(w, p, utt, lexs, socs) *
+                            self.priors["personae"][pers]
+                            for w in self.priors["worlds"].keys()])
+                            for p in self.priors["personae"].keys()
+                        ]
+                        )
+        return l1_p_given_m
 
     def prediction(self, world, messages):
         props = World(world).properties
@@ -357,3 +346,56 @@ class Listener(Player):
                 for p in props}]
             self.priors = old_priors
         return preds
+
+
+class CageyListener(Listener):
+    def __init__(self, 
+    priors : list, 
+    hypothesis_world_prefs : dict,
+    hypothesis_pers_prefs : dict,
+    alpha = 1, 
+    alpha_bis = 1, 
+    beta = 1, 
+    beta_bis = 1,
+    naive = 0,
+    uncovering = False) -> None:
+        super().__init__(priors[naive], alpha, beta)
+        self.alpha = alpha
+        self.alpha_bis = alpha_bis
+        self.beta = beta
+        self.beta_bis = beta_bis
+        self._speaker = DupSpeaker(priors, hypothesis_world_prefs, hypothesis_pers_prefs,
+                                    alpha, alpha_bis, beta, beta_bis)
+        self.hypothesis_world_prefs = hypothesis_world_prefs 
+        self.hypothesis_pers_prefs = hypothesis_pers_prefs 
+
+    def cagey_world_interpretation(self, lexs : list, socs : list, worlds : list, utt : str):
+        sm_preferences = self._speaker._softmax_preferences()
+        lc_w_given_m = sum([self._speaker.dup_choice_rule(worlds, p["state"], utt, lexs, socs) * 
+                        sm_preferences["(" + str(worlds)  + ", " +  str(p["state"]) + ")"]
+                        for p in self.hypothesis_pers_prefs.values()]) / \
+                        sum(
+                            [
+                            sum([self._speaker.dup_choice_rule(w["state"], p["state"], utt, lexs, socs) *
+                            sm_preferences["(" + str(w["state"])  + ", " +  str(p["state"]) + ")"]
+                            for p in self.hypothesis_pers_prefs.values()])
+                            for w in self.hypothesis_world_prefs.values()
+                        ]
+                        )
+        return lc_w_given_m
+
+    def cagey_pers_interpretation(self, lexs : list, socs : list, perss : list, utt : str):
+        sm_preferences = self._speaker._softmax_preferences()
+        lc_p_given_m = sum([self._speaker.dup_choice_rule(w["state"], perss, utt, lexs, socs) * 
+                        sm_preferences["(" + str(w["state"])  + ", " +  str(perss) + ")"]
+                        for w in self.hypothesis_world_prefs.values()]) / \
+                        sum(
+                            [
+                            sum([self._speaker.dup_choice_rule(w["state"], p["state"], utt, lexs, socs) *
+                            sm_preferences["(" + str(w["state"])  + ", " +  str(p["state"]) + ")"]
+                            for w in self.hypothesis_world_prefs.values()])
+                            for p in self.hypothesis_pers_prefs.values()
+                        ]
+                        )
+        return lc_p_given_m
+
