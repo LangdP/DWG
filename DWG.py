@@ -113,13 +113,31 @@ socs = [Pers(utterances_rc, "soc_RC"), Pers(utterances_nrc, "soc_NRC")]
 lexs = [Lex(utterances_rc, "lex_RC"), Lex(utterances_nrc, "lex_NRC")]
 
 # Constructing speaker preferences
-world_preferences = preferences_generation(list(world_priors_i.keys()),
+dw_world_preferences = preferences_generation(list(world_priors_i.keys()),
                                             preferred_states=[["wR", "wNR"]],
                                             dispreferred_states=[["wNR", "wR"],
                                                                  ["wR", "wR"]]
                                              )
-personae_preferences = preferences_generation(list(pers_priors_i.keys()),
+dw_personae_preferences = preferences_generation(list(pers_priors_i.keys()),
                                             preferred_states=[["piRC", "piNRC"]],
                                             dispreferred_states=[["piNRC", "piRC"],
                                                                  ["piRC", "piRC"]]
                                                                  )
+
+no_world_preferences = preferences_generation(list(world_priors_i.keys()))
+no_personae_preferences = preferences_generation(list(pers_priors_i.keys()))
+
+# Constructing the probabilty distribution on priors for the uncovering cagey
+# listener
+
+worlds_prefs_priors = {"dw_prefs" : {"prefs" : dw_world_preferences, 
+                                    "prior" : 0.5},
+                        "npref" : {"prefs" : no_world_preferences, 
+                                    "prior" : 0.5}
+}
+
+pers_prefs_priors = {"dw_prefs" : {"prefs" : dw_personae_preferences, 
+                                    "prior" : 0.5},
+                        "npref" : {"prefs" : no_personae_preferences, 
+                                    "prior" : 0.5}
+}

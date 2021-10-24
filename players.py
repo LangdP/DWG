@@ -348,6 +348,8 @@ class Listener(Player):
         return preds
 
 
+# This is the cagey listener, they make an hypothesis about the speakers'
+# preferences and assume a duplicitous speaker
 class CageyListener(Listener):
     def __init__(self, 
     priors : list, 
@@ -357,14 +359,14 @@ class CageyListener(Listener):
     alpha_bis = 1, 
     beta = 1, 
     beta_bis = 1,
-    naive = 0,
-    uncovering = False) -> None:
+    naive = 0) -> None:
         super().__init__(priors[naive], alpha, beta)
+        self.priors_list = priors
         self.alpha = alpha
         self.alpha_bis = alpha_bis
         self.beta = beta
         self.beta_bis = beta_bis
-        self._speaker = DupSpeaker(priors, hypothesis_world_prefs, hypothesis_pers_prefs,
+        self._speaker = DupSpeaker(self.priors_list, hypothesis_world_prefs, hypothesis_pers_prefs,
                                     alpha, alpha_bis, beta, beta_bis)
         self.hypothesis_world_prefs = hypothesis_world_prefs 
         self.hypothesis_pers_prefs = hypothesis_pers_prefs 
@@ -399,3 +401,109 @@ class CageyListener(Listener):
                         )
         return lc_p_given_m
 
+
+# This is the uncovering cagey listener, still to be fully worked out.
+# They also assume a duplicitous speaker but this time they have priors over
+# a set of possible preferences and make predictions on both the content
+# and the probability of a given set of preferences being effective.
+class UncovCageyListener(CageyListener):
+    def __init__(self, 
+    priors : list, 
+    worlds_pref_priors = dict,
+    pers_pref_priors = dict,
+    alpha = 1, 
+    alpha_bis = 1, 
+    beta = 1, 
+    beta_bis = 1) -> None:
+        super().__init__(priors, worlds_pref_priors["npref"]["prefs"], 
+                        pers_pref_priors["npref"]["prefs"], 
+                        alpha, alpha_bis, beta, beta_bis)
+        self.priors_list = priors
+        self.alpha = alpha
+        self.alpha_bis = alpha_bis
+        self.beta = beta
+        self.beta_bis = beta_bis
+        self.worlds_pref_priors = worlds_pref_priors
+        self.pers_pref_priors = pers_pref_priors 
+
+    def cagey_uncov_world_interpretation(self, lexs : list, socs : list, worlds : list, 
+                                        hyp_pref : str, utt : str):
+        speakers = {}
+        for wp in self.worlds_pref_priors:
+            for pp in self.pers_pref_priors:
+                speakers[wp + " + " + pp] = DupSpeaker(self.priors_list, 
+                                                        self.worlds_pref_priors[wp]["prefs"],
+                                                        self.pers_pref_priors[pp]["prefs"], 
+                                                        self.alpha, self.alpha_bis, self.beta, 
+                                                        self.beta_bis)
+                
+        sm_preferences = {s : speakers[s]._softmax_preferences() for s in speakers}
+        lc_w_nu_given_m = sum([
+                sum(
+                    [self.worlds_pref_priors[hyp_pref]["prior"] * 
+                    self.pers_pref_priors[pp]["prior"] *
+                    sm_preferences[hyp_pref + " + " + pp]["(" + str(worlds)  + ", " +  str(p["state"]) + ")"] * 
+                    speakers[hyp_pref + " + " + pp].dup_choice_rule(worlds, p["state"], utt, lexs, socs)
+                    for p in self.hypothesis_pers_prefs.values()]
+                )
+            for pp in self.pers_pref_priors]
+            ) / \
+                        sum(
+                            [
+                               sum( [
+                            sum([
+                            sum([self.worlds_pref_priors[wp]["prior"] *
+                                self.pers_pref_priors[pp]["prior"] *
+                                self._speaker.dup_choice_rule(w["state"], p["state"], utt, lexs, socs) *
+                            sm_preferences[wp + " + " + pp]["(" + str(w["state"])  + ", " +  str(p["state"]) + ")"]
+                            for p in self.hypothesis_pers_prefs.values()])
+                            for w in self.hypothesis_world_prefs.values()
+                        ]
+                        )
+                        for wp in self.worlds_pref_priors]
+                        )
+                        for pp in self.pers_pref_priors
+                        ]
+                        )
+        return lc_w_nu_given_m
+
+    def cagey_uncov_pers_interpretation(self, lexs : list, socs : list, perss : list, 
+                                        hyp_pref : str, utt : str):
+        speakers = {}
+        for wp in self.worlds_pref_priors:
+            for pp in self.pers_pref_priors:
+                speakers[wp + " + " + pp] = DupSpeaker(self.priors_list, 
+                                                        self.worlds_pref_priors[wp]["prefs"],
+                                                        self.pers_pref_priors[pp]["prefs"], 
+                                                        self.alpha, self.alpha_bis, self.beta, 
+                                                        self.beta_bis)
+                
+        sm_preferences = {s : speakers[s]._softmax_preferences() for s in speakers}
+        lc_pi_mu_given_m = sum([
+                sum(
+                    [self.worlds_pref_priors[hyp_pref]["prior"] * 
+                    self.pers_pref_priors[pp]["prior"] *
+                    sm_preferences[wp + " + " + hyp_pref]["(" + str(w["state"])  + ", " +  str(perss) + ")"] * 
+                    speakers[wp + " + " + hyp_pref].dup_choice_rule(w["state"], perss, utt, lexs, socs)
+                    for w in self.hypothesis_world_prefs.values()]
+                )
+            for wp in self.worlds_pref_priors]
+            ) / \
+                        sum(
+                            [
+                               sum( [
+                            sum([
+                            sum([self.worlds_pref_priors[wp]["prior"] *
+                                self.pers_pref_priors[pp]["prior"] *
+                                self._speaker.dup_choice_rule(w["state"], p["state"], utt, lexs, socs) *
+                            sm_preferences[wp + " + " + pp]["(" + str(w["state"])  + ", " +  str(p["state"]) + ")"]
+                            for p in self.hypothesis_pers_prefs.values()])
+                            for w in self.hypothesis_world_prefs.values()
+                        ]
+                        )
+                        for wp in self.worlds_pref_priors]
+                        )
+                        for pp in self.pers_pref_priors
+                        ]
+                        )
+        return lc_pi_mu_given_m
