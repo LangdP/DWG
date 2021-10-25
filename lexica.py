@@ -6,6 +6,7 @@ class Lexicon:
         self._utt_dic = utt_dic
         self.lexical_units = [k for k in utt_dic.keys()]
 
+
 # This is the semantics lexicon
 class Lex(Lexicon):
     def __init__(self, utt_dic, name="lex") -> None:
@@ -24,6 +25,7 @@ class Lex(Lexicon):
             return self.__semantics[lexical_unit]
         else:
             print("This lexical unit is not defined in the lexicon")
+
 
 # This is the social meaning lexicon
 class Pers(Lexicon):
@@ -44,8 +46,10 @@ class Pers(Lexicon):
         else:
             print("This lexical unit is not defined in the social meaning lexicon")
 
+
 # This class is the priors, it is a special kind of dictionary to make it
 # easy to store the priors for each player in the correct format.
+
 
 class Priors:
     def __init__(self, world_priors, pers_priors, delta_soc, pi_lex) -> None:
@@ -53,17 +57,12 @@ class Priors:
         self.pers_priors = pers_priors
         self.delta_soc = delta_soc
         self.pi_lex = pi_lex
-        self.priors = {
-            'worlds': {}, 
-            'personae': {},
-            'delta_soc': {},
-            'pi_lex': {}
-        }
+        self.priors = {"worlds": {}, "personae": {}, "delta_soc": {}, "pi_lex": {}}
         for w in world_priors:
-            self.priors['worlds'][w] = world_priors[w]
+            self.priors["worlds"][w] = world_priors[w]
         for p in pers_priors.keys():
-            self.priors['personae'][p] = pers_priors[p]
+            self.priors["personae"][p] = pers_priors[p]
         for s in delta_soc:
-            self.priors['delta_soc'][s] = delta_soc[s]
+            self.priors["delta_soc"][s] = delta_soc[s]
         for l in pi_lex:
-            self.priors['pi_lex'][l] = pi_lex[l]
+            self.priors["pi_lex"][l] = pi_lex[l]
