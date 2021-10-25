@@ -411,7 +411,7 @@ class Listener(Player):
 class CageyListener(Listener):
     def __init__(
         self,
-        priors: list,
+        priors_list: list,
         hypothesis_world_prefs: dict,
         hypothesis_pers_prefs: dict,
         alpha=1,
@@ -420,8 +420,8 @@ class CageyListener(Listener):
         beta_bis=1,
         naive=0,
     ) -> None:
-        super().__init__(priors[naive], alpha, beta)
-        self.priors_list = priors
+        super().__init__(priors_list[naive], alpha, beta)
+        self.priors_list = priors_list
         self.alpha = alpha
         self.alpha_bis = alpha_bis
         self.beta = beta
@@ -519,7 +519,7 @@ class CageyListener(Listener):
 class UncovCageyListener(CageyListener):
     def __init__(
         self,
-        priors: list,
+        priors_list: list,
         worlds_pref_priors=dict,
         pers_pref_priors=dict,
         alpha=1,
@@ -528,7 +528,7 @@ class UncovCageyListener(CageyListener):
         beta_bis=1,
     ) -> None:
         super().__init__(
-            priors,
+            priors_list,
             worlds_pref_priors["npref"]["prefs"],
             pers_pref_priors["npref"]["prefs"],
             alpha,
@@ -536,7 +536,7 @@ class UncovCageyListener(CageyListener):
             beta,
             beta_bis,
         )
-        self.priors_list = priors
+        self.priors_list = priors_list
         self.alpha = alpha
         self.alpha_bis = alpha_bis
         self.beta = beta
@@ -545,7 +545,8 @@ class UncovCageyListener(CageyListener):
         self.pers_pref_priors = pers_pref_priors
 
     def cagey_uncov_world_interpretation(
-        self, lexs: list, socs: list, worlds: list, hyp_pref: str, utt: str
+        self, worlds: list, utt: str, hyp_pref: str, 
+        socs: list, lexs: list
     ):
         speakers = {}
         for wp in self.worlds_pref_priors:
@@ -613,7 +614,8 @@ class UncovCageyListener(CageyListener):
         return lc_w_nu_given_m
 
     def cagey_uncov_pers_interpretation(
-        self, lexs: list, socs: list, perss: list, hyp_pref: str, utt: str
+        self, perss: list, utt: str, hyp_pref: str, 
+        socs: list, lexs: list
     ):
         speakers = {}
         for wp in self.worlds_pref_priors:
@@ -679,3 +681,26 @@ class UncovCageyListener(CageyListener):
             ]
         )
         return lc_pi_mu_given_m
+
+    def full_predictions(self, socs: list, lexs: list):
+        messages = list(lexs[0]._utt_dic.keys())
+        contexts = self._speaker._create_contexts()
+        worlds = {tuple(c[0]) for c in contexts}
+        personae = {tuple(c[1]) for c in contexts}
+        preds = {}
+        for wpref in self.worlds_pref_priors.keys():
+            preds[wpref] = {}
+            for m in messages:
+                preds[wpref][m] = {}
+                preds[wpref][m]["worlds_nu_predictions"] = {}
+                for ws in worlds:
+                    preds[wpref][m]["worlds_nu_predictions"][ws] = self.cagey_uncov_world_interpretation(list(ws), m, wpref, socs, lexs)
+        for ppref in self.pers_pref_priors.keys():
+            preds[ppref] = {}
+            for m in messages:
+                preds[ppref][m] = {}
+                preds[ppref][m]["pers_mu_predictions"] = {}
+                for ps in personae:
+                    preds[ppref][m]["pers_mu_predictions"][ps] = self.cagey_uncov_pers_interpretation(list(ps), m, ppref, socs, lexs)
+        return preds
+
