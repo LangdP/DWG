@@ -212,6 +212,11 @@ class HonestDivSpeaker(HonestNdivSpeaker):
         return preds
 
 
+# This is the DupSpeaker class, unlike the other speakers, it has preferences over worlds 
+# and personae. Using their knowledge of the diversity of the crowd and their own 
+# preferences, the probability of using one message over another is modified. It is
+#  duplicitous in the sense that it cares about maximizing its preferences more than
+#  conveying anything like the 'true state' of the world and their identity.
 class DupSpeaker(HonestNdivSpeaker):
     def __init__(
         self,
