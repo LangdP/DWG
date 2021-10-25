@@ -38,7 +38,7 @@ class Player:
         )
         return lex_w_given_m
 
-    def lex_choice(self, utt: str, socs : list, lex: Lex):
+    def lex_choice(self, utt: str, socs: list, lex: Lex):
         personae = self.priors["personae"].keys()
         lex_given_m = sum(
             [
@@ -86,11 +86,14 @@ class Player:
             preds[m]["world_interpretation"] = {}
             preds[m]["personae_interpretation"] = {}
             for w in worlds:
-                preds[m]["world_interpretation"][w] = self.l0_interpretation(w, m, socs, lexs)
+                preds[m]["world_interpretation"][w] = self.l0_interpretation(
+                    w, m, socs, lexs
+                )
             for p in personae:
-                preds[m]["personae_interpretation"][p] = self.general_social_interpretation(p, m, socs)
+                preds[m]["personae_interpretation"][
+                    p
+                ] = self.general_social_interpretation(p, m, socs)
         return preds
-        
 
 
 # This is the HonestNdivSpeaker class, it takes a world and a temperature parameter as
@@ -102,7 +105,7 @@ class Player:
 
 
 class HonestNdivSpeaker(Player):
-    def __init__(self, priors: Priors, alpha = 1, beta = 1) -> None:
+    def __init__(self, priors: Priors, alpha=1, beta=1) -> None:
         super().__init__(priors)
         self.alpha = alpha
         self.beta = beta
@@ -115,12 +118,13 @@ class HonestNdivSpeaker(Player):
 
     def choice_rule(self, world: str, pers: str, utt: str, socs: list, lexs: list):
         messages = list(lexs[0]._utt_dic.keys())
-        return (exp(
-            self.alpha * self.rsa_like_utility(world, utt, socs, lexs)
-        ) + exp(self.beta * self.smg_like_utility(pers, utt, socs))) / sum(
+        return (
+            exp(self.alpha * self.rsa_like_utility(world, utt, socs, lexs))
+            + exp(self.beta * self.smg_like_utility(pers, utt, socs))
+        ) / sum(
             [
-                exp(self.alpha * self.rsa_like_utility(world, m, socs, lexs)) +\
-                    exp(self.beta * self.smg_like_utility(pers, m, socs))
+                exp(self.alpha * self.rsa_like_utility(world, m, socs, lexs))
+                + exp(self.beta * self.smg_like_utility(pers, m, socs))
                 for m in messages
             ]
         )
@@ -153,7 +157,7 @@ class HonestNdivSpeaker(Player):
 # a diverse crowd with diverse opinions, but does not have a preference over worlds/
 # personae, still wishes to convey the 'true state of things'
 class HonestDivSpeaker(HonestNdivSpeaker):
-    def __init__(self, priors_list: list, alpha = 1, beta = 1, naive_type=0) -> None:
+    def __init__(self, priors_list: list, alpha=1, beta=1, naive_type=0) -> None:
         super().__init__(priors_list[naive_type], alpha, beta)
         self.priors_list = priors_list
         self.listeners = [Player(p) for p in priors_list]
@@ -161,29 +165,24 @@ class HonestDivSpeaker(HonestNdivSpeaker):
     def smg_like_div_utility(self, pers: str, utt: str, socs: list):
         utility = []
         for lis in self.listeners:
-            utility.append(
-                my_log(
-                    lis.general_social_interpretation(pers, utt, socs)
-                )
-            )
+            utility.append(my_log(lis.general_social_interpretation(pers, utt, socs)))
         return sum(utility)
 
     def rsa_like_div_utility(self, world: str, utt: str, socs: list, lexs: list):
         utility = []
         for lis in self.listeners:
-            utility.append(
-                my_log(lis.l0_interpretation(world, utt, socs, lexs))
-            )
+            utility.append(my_log(lis.l0_interpretation(world, utt, socs, lexs)))
         return sum(utility)
 
     def div_choice_rule(self, world: str, pers: str, utt: str, socs: list, lexs: list):
         messages = list(lexs[0]._utt_dic.keys())
-        return (exp(
-            self.alpha * self.rsa_like_div_utility(world, utt, socs, lexs)
-        ) + exp(self.beta * self.smg_like_div_utility(pers, utt, socs))) / sum(
+        return (
+            exp(self.alpha * self.rsa_like_div_utility(world, utt, socs, lexs))
+            + exp(self.beta * self.smg_like_div_utility(pers, utt, socs))
+        ) / sum(
             [
-                exp(self.alpha * self.rsa_like_div_utility(world, m, socs, lexs)) +\
-                    exp(self.beta * self.smg_like_div_utility(pers, m, socs))
+                exp(self.alpha * self.rsa_like_div_utility(world, m, socs, lexs))
+                + exp(self.beta * self.smg_like_div_utility(pers, m, socs))
                 for m in messages
             ]
         )
@@ -212,8 +211,8 @@ class HonestDivSpeaker(HonestNdivSpeaker):
         return preds
 
 
-# This is the DupSpeaker class, unlike the other speakers, it has preferences over worlds 
-# and personae. Using their knowledge of the diversity of the crowd and their own 
+# This is the DupSpeaker class, unlike the other speakers, it has preferences over worlds
+# and personae. Using their knowledge of the diversity of the crowd and their own
 # preferences, the probability of using one message over another is modified. It is
 #  duplicitous in the sense that it cares about maximizing its preferences more than
 #  conveying anything like the 'true state' of the world and their identity.
@@ -239,49 +238,36 @@ class DupSpeaker(HonestNdivSpeaker):
         self.personae_preferences = personae_preferences
         self.listeners = [Player(p) for p in priors_list]
 
-    def smg_like_dup_utility(
-        self, perss: list, utt: str, 
-        socs: list
-    ):
+    def smg_like_dup_utility(self, perss: list, utt: str, socs: list):
         utility = []
         for l in range(len(self.listeners)):
             lis = self.listeners[l]
             utility.append(
-                my_log(
-                    lis.general_social_interpretation(perss[l], utt, socs)
-                )
+                my_log(lis.general_social_interpretation(perss[l], utt, socs))
             )
         return sum(utility)
 
-    def rsa_like_dup_utility(
-        self, worlds: list, utt: str, 
-        socs: list, lexs: list
-    ):
+    def rsa_like_dup_utility(self, worlds: list, utt: str, socs: list, lexs: list):
         utility = []
         for l in range(len(self.listeners)):
             lis = self.listeners[l]
-            utility.append(
-                my_log(
-                    lis.l0_interpretation(worlds[l], utt, socs, lexs)
-                )
-            )
+            utility.append(my_log(lis.l0_interpretation(worlds[l], utt, socs, lexs)))
         return sum(utility)
 
     def dup_choice_rule(
-        self, worlds: list, perss: list, utt: str, 
-        socs: list, lexs: list
+        self, worlds: list, perss: list, utt: str, socs: list, lexs: list
     ):
         messages = list(lexs[0]._utt_dic.keys())
-        return (exp(
-            self.alpha * self.rsa_like_dup_utility(worlds, utt, socs, lexs)
-        ) + exp(self.beta * self.smg_like_dup_utility(perss, utt, socs))) / sum(
+        return (
+            exp(self.alpha * self.rsa_like_dup_utility(worlds, utt, socs, lexs))
+            + exp(self.beta * self.smg_like_dup_utility(perss, utt, socs))
+        ) / sum(
             [
-                exp(self.alpha * self.rsa_like_dup_utility(worlds, m, socs, lexs)) +\
-                    exp(self.beta * self.smg_like_dup_utility(perss, m, socs))
+                exp(self.alpha * self.rsa_like_dup_utility(worlds, m, socs, lexs))
+                + exp(self.beta * self.smg_like_dup_utility(perss, m, socs))
                 for m in messages
             ]
-            )
-        
+        )
 
     def _normalize(self, vals: list):
         sm_vals = []
@@ -341,9 +327,9 @@ class DupSpeaker(HonestNdivSpeaker):
         return preds, preds_message_choice
 
 
-
 # This is the Listener class.
 # Each listener envisions their own player.
+
 
 class Listener(Player):
     def __init__(self, priors: Priors, alpha=1, beta=1) -> None:
@@ -404,11 +390,14 @@ class Listener(Player):
             preds[m]["world_interpretation"] = {}
             preds[m]["personae_interpretation"] = {}
             for w in worlds:
-                preds[m]["world_interpretation"][w] = self.l1_world_interpretation(w, m, socs, lexs)
+                preds[m]["world_interpretation"][w] = self.l1_world_interpretation(
+                    w, m, socs, lexs
+                )
             for p in personae:
-                preds[m]["personae_interpretation"][p] = self.l1_pers_interpretation(p, m, socs, lexs)
+                preds[m]["personae_interpretation"][p] = self.l1_pers_interpretation(
+                    p, m, socs, lexs
+                )
         return preds
-        
 
 
 # This is the cagey listener, they make an hypothesis about the speakers'
@@ -444,8 +433,7 @@ class CageyListener(Listener):
         self.hypothesis_pers_prefs = hypothesis_pers_prefs
 
     def cagey_world_interpretation(
-        self, worlds: list, utt: str, 
-        socs: list, lexs: list
+        self, worlds: list, utt: str, socs: list, lexs: list
     ):
         sm_preferences = self._speaker._softmax_preferences()
         lc_w_given_m = sum(
@@ -472,10 +460,7 @@ class CageyListener(Listener):
         )
         return lc_w_given_m
 
-    def cagey_pers_interpretation(
-        self, perss: list, utt: str,
-        socs: list, lexs: list
-     ):
+    def cagey_pers_interpretation(self, perss: list, utt: str, socs: list, lexs: list):
         sm_preferences = self._speaker._softmax_preferences()
         lc_p_given_m = sum(
             [
@@ -512,10 +497,15 @@ class CageyListener(Listener):
             preds[m]["worlds_predictions"] = {}
             preds[m]["pers_predictions"] = {}
             for ws in worlds:
-                preds[m]["worlds_predictions"][ws] = self.cagey_world_interpretation(list(ws), m, socs, lexs)
+                preds[m]["worlds_predictions"][ws] = self.cagey_world_interpretation(
+                    list(ws), m, socs, lexs
+                )
             for ps in personae:
-                preds[m]["pers_predictions"][ps] = self.cagey_pers_interpretation(list(ps), m, socs, lexs)
+                preds[m]["pers_predictions"][ps] = self.cagey_pers_interpretation(
+                    list(ps), m, socs, lexs
+                )
         return preds
+
 
 # This is the uncovering cagey listener, still to be fully worked out.
 # They also assume a duplicitous speaker but this time they have priors over
@@ -550,8 +540,7 @@ class UncovCageyListener(CageyListener):
         self.pers_pref_priors = pers_pref_priors
 
     def cagey_uncov_world_interpretation(
-        self, worlds: list, utt: str, hyp_pref: str, 
-        socs: list, lexs: list
+        self, worlds: list, utt: str, hyp_pref: str, socs: list, lexs: list
     ):
         speakers = {}
         for wp in self.worlds_pref_priors:
@@ -619,8 +608,7 @@ class UncovCageyListener(CageyListener):
         return lc_w_nu_given_m
 
     def cagey_uncov_pers_interpretation(
-        self, perss: list, utt: str, hyp_pref: str, 
-        socs: list, lexs: list
+        self, perss: list, utt: str, hyp_pref: str, socs: list, lexs: list
     ):
         speakers = {}
         for wp in self.worlds_pref_priors:
@@ -699,13 +687,20 @@ class UncovCageyListener(CageyListener):
                 preds[wpref][m] = {}
                 preds[wpref][m]["worlds_nu_predictions"] = {}
                 for ws in worlds:
-                    preds[wpref][m]["worlds_nu_predictions"][ws] = self.cagey_uncov_world_interpretation(list(ws), m, wpref, socs, lexs)
+                    preds[wpref][m]["worlds_nu_predictions"][
+                        ws
+                    ] = self.cagey_uncov_world_interpretation(
+                        list(ws), m, wpref, socs, lexs
+                    )
         for ppref in self.pers_pref_priors.keys():
             preds[ppref] = {}
             for m in messages:
                 preds[ppref][m] = {}
                 preds[ppref][m]["pers_mu_predictions"] = {}
                 for ps in personae:
-                    preds[ppref][m]["pers_mu_predictions"][ps] = self.cagey_uncov_pers_interpretation(list(ps), m, ppref, socs, lexs)
+                    preds[ppref][m]["pers_mu_predictions"][
+                        ps
+                    ] = self.cagey_uncov_pers_interpretation(
+                        list(ps), m, ppref, socs, lexs
+                    )
         return preds
-
