@@ -4,6 +4,7 @@
 from players import *
 from helpers import *
 from lexica import *
+from viz import rsa_ll_viz
 
 
 # Available messages
@@ -35,6 +36,32 @@ pi_lex = {"pi": {"lex": 1}}
 priors = Priors(world_priors, pers_priors, delta_soc, pi_lex)
 
 # Constructing lexica and storing in lists
-
 socs = [Pers(meanings, "soc")]
-lex = [Lex(meanings, "lex")]
+lexs = [Lex(meanings, "lex")]
+
+# Literal listener
+lis0 = Player(priors)
+
+# Predictions for pers
+for m in messages:
+    print(
+        "When hearing message \'" +
+    m + "\', the probability that a literal listener interprets the persona\
+        displayed by the speaker as being \'\pi\' is equal to: " +
+        str(lis0.general_social_interpretation("pi", m, socs))
+        )
+
+# Predictions for worlds
+rsa_ll_viz(lis0, socs, lexs)
+
+# Constructing the speaker
+speak = HonestNdivSpeaker(priors)
+
+# Predictions for (worlds, personae) pairs
+speak.full_predictions(socs, lexs)
+
+# Constructing the speaker
+lis1 = Listener(priors)
+
+# Predictions for (worlds, personae) pairs
+lis1.full_predictions(socs, lexs)
