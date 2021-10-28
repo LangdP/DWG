@@ -16,7 +16,7 @@ meanings = {
 }
 
 # Setting the priors.
-# Define priors over possible worlds here, worlds don't count in SMG so we have 
+# Define priors over possible worlds here, worlds don't count in SMG so we have
 # only one, necessary world.
 world_priors = {"w": 1}
 
@@ -26,16 +26,16 @@ pers_priors = {
     "doofus": 0.2,
     "cool guy": 0.2,
     "asshole": 0.3,
-    }
+}
 
 delta_soc = {"soc": 1}
 
 pi_lex = {
     "stern leader": {"lex": 1},
     "doofus": {"lex": 1},
-    "cool guy":{"lex": 1},
-    "asshole":{"lex": 1},
-    }
+    "cool guy": {"lex": 1},
+    "asshole": {"lex": 1},
+}
 
 # Build priors as an instance of the Priors class.
 priors = Priors(world_priors, pers_priors, delta_soc, pi_lex)
@@ -50,23 +50,24 @@ lis0 = Player(priors)
 # Predictions for pers
 for m in messages:
     print(
-        "When hearing message \'" +
-    m + "\', the probability that a literal listener interprets the world\
-        described by the speaker as being \'w\' is equal to: " +
-        str(lis0.l0_interpretation("w", m, socs, lexs))
-        )
+        "When hearing message '"
+        + m
+        + "', the probability that a literal listener interprets the world\
+        described by the speaker as being 'w' is equal to: "
+        + str(lis0.l0_interpretation("w", m, socs, lexs))
+    )
 
 # Predictions for worlds
 lis0.full_predictions(socs, lexs)
 
 # Constructing the speaker
-speak = HonestNdivSpeaker(priors, world_sensitivity = 0)
+speak = HonestNdivSpeaker(priors, world_sensitivity=0)
 
 # Predictions for (worlds, personae) pairs
 speak.full_predictions(socs, lexs)
 
 # Constructing the speaker
-lis1 = Listener(priors, world_sensitivity = 0)
+lis1 = Listener(priors, world_sensitivity=0)
 
 # Predictions for (worlds, personae) pairs
 lis1.full_predictions(socs, lexs)

@@ -31,9 +31,14 @@ class Player:
         return l0_w_given_m
 
     def lexicalized_content_interpretation(self, world: str, utt: str, lex: Lex):
-        lex_w_given_m = (self._sem_interpret(utt, world, lex) * self.priors["worlds"][world]) / (
+        lex_w_given_m = (
+            self._sem_interpret(utt, world, lex) * self.priors["worlds"][world]
+        ) / (
             sum(
-                [self._sem_interpret(utt, w, lex) * self.priors["worlds"][w] for w in self.priors["worlds"].keys()]
+                [
+                    self._sem_interpret(utt, w, lex) * self.priors["worlds"][w]
+                    for w in self.priors["worlds"].keys()
+                ]
             )
         )
         return lex_w_given_m
@@ -60,7 +65,9 @@ class Player:
         return pi_given_m
 
     def lexicalized_social_interpretation(self, pers: str, utt: str, soc: Pers):
-        soc_pi_given_m = (self._soc_interpret(utt, pers, soc) * self.priors["personae"][pers]) / (
+        soc_pi_given_m = (
+            self._soc_interpret(utt, pers, soc) * self.priors["personae"][pers]
+        ) / (
             sum(
                 [
                     self._soc_interpret(utt, p, soc) * self.priors["personae"][p]
@@ -105,17 +112,14 @@ class Player:
 
 
 class HonestNdivSpeaker(Player):
-    def __init__(self, priors: Priors, 
-    alpha=1, 
-    beta=1, 
-    pers_sensitivity = 1, 
-    world_sensitivity = 1
+    def __init__(
+        self, priors: Priors, alpha=1, beta=1, pers_sensitivity=1, world_sensitivity=1
     ) -> None:
         super().__init__(priors)
         self.alpha = alpha
         self.beta = beta
         # These two parameters are used for RSA/SMG testing
-        self.ps = pers_sensitivity 
+        self.ps = pers_sensitivity
         self.ws = world_sensitivity
 
     def smg_like_utility(self, pers: str, utt: str, socs: list):
@@ -131,7 +135,10 @@ class HonestNdivSpeaker(Player):
             + (self.ps * exp(self.beta * self.smg_like_utility(pers, utt, socs)))
         ) / sum(
             [
-                (self.ws * exp(self.alpha * self.rsa_like_utility(world, m, socs, lexs)))
+                (
+                    self.ws
+                    * exp(self.alpha * self.rsa_like_utility(world, m, socs, lexs))
+                )
                 + (self.ps * exp(self.beta * self.smg_like_utility(pers, m, socs)))
                 for m in messages
             ]
@@ -160,19 +167,23 @@ class HonestNdivSpeaker(Player):
                 preds[pair][m] = self.choice_rule(pair[0], pair[1], m, socs, lexs)
         return preds
 
+
 # This is used to make a S_2 speaker, it is used in the RSA implementation
 class HonestNdivSpeakerPlus(HonestNdivSpeaker):
-    def __init__(self, priors: Priors, 
-    alpha=1, 
-    beta=1, 
-    rank=1,
-    pers_sensitivity = 1, 
-    world_sensitivity = 1) -> None:
+    def __init__(
+        self,
+        priors: Priors,
+        alpha=1,
+        beta=1,
+        rank=1,
+        pers_sensitivity=1,
+        world_sensitivity=1,
+    ) -> None:
         super().__init__(priors)
         self.alpha = alpha
         self.beta = beta
         self.rank = rank
-        self.ps = pers_sensitivity 
+        self.ps = pers_sensitivity
         self.ws = world_sensitivity
         self.lis = Listener(priors, alpha, beta, pers_sensitivity, world_sensitivity)
 
@@ -185,12 +196,16 @@ class HonestNdivSpeakerPlus(HonestNdivSpeaker):
     def choice_rule(self, world: str, pers: str, utt: str, socs: list, lexs: list):
         messages = list(lexs[0]._utt_dic.keys())
         return (
-            self.ws *exp(self.alpha * self.rsa_like_utilityplus(world, utt, socs, lexs))
-            + self.ps *exp(self.beta * self.smg_like_utilityplus(pers, utt, socs, lexs))
+            self.ws
+            * exp(self.alpha * self.rsa_like_utilityplus(world, utt, socs, lexs))
+            + self.ps
+            * exp(self.beta * self.smg_like_utilityplus(pers, utt, socs, lexs))
         ) / sum(
             [
-                self.ws * exp(self.alpha * self.rsa_like_utilityplus(world, m, socs, lexs))
-                + self.ps * exp(self.beta * self.smg_like_utilityplus(pers, m, socs, lexs))
+                self.ws
+                * exp(self.alpha * self.rsa_like_utilityplus(world, m, socs, lexs))
+                + self.ps
+                * exp(self.beta * self.smg_like_utilityplus(pers, m, socs, lexs))
                 for m in messages
             ]
         )
@@ -219,27 +234,26 @@ class HonestNdivSpeakerPlus(HonestNdivSpeaker):
         return preds
 
 
-
 # This is the HonestDivSpeaker class, unlike the HonestNdivSpeaker, it assumes
 # a diverse crowd with diverse opinions, but does not have a preference over worlds/
 # personae, still wishes to convey the 'true state of things'
 class HonestDivSpeaker(HonestNdivSpeaker):
-    def __init__(self, priors_list: list, 
-    alpha=1, 
-    beta=1, 
-    naive_type=0,
-    pers_sensitivity = 1, 
-    world_sensitivity = 1
+    def __init__(
+        self,
+        priors_list: list,
+        alpha=1,
+        beta=1,
+        naive_type=0,
+        pers_sensitivity=1,
+        world_sensitivity=1,
     ) -> None:
-        super().__init__(priors_list[naive_type], 
-                alpha, 
-                beta, 
-                pers_sensitivity, 
-                world_sensitivity)
+        super().__init__(
+            priors_list[naive_type], alpha, beta, pers_sensitivity, world_sensitivity
+        )
         self.priors_list = priors_list
         self.listeners = [Player(p) for p in priors_list]
         # These two parameters are used for RSA/SMG testing
-        self.ps = pers_sensitivity 
+        self.ps = pers_sensitivity
         self.ws = world_sensitivity
 
     def smg_like_div_utility(self, pers: str, utt: str, socs: list):
@@ -307,14 +321,12 @@ class DupSpeaker(HonestNdivSpeaker):
         beta=1,
         beta_bis=1,
         naive_type=0,
-        pers_sensitivity = 1, 
-        world_sensitivity = 1
-        ) -> None:
-        super().__init__(priors_list[naive_type], 
-            alpha, 
-            beta, 
-            pers_sensitivity, 
-            world_sensitivity)
+        pers_sensitivity=1,
+        world_sensitivity=1,
+    ) -> None:
+        super().__init__(
+            priors_list[naive_type], alpha, beta, pers_sensitivity, world_sensitivity
+        )
         self.priors_list = priors_list
         self.alpha = alpha
         self.alpha_bis = alpha_bis
@@ -324,7 +336,7 @@ class DupSpeaker(HonestNdivSpeaker):
         self.personae_preferences = personae_preferences
         self.listeners = [Player(p) for p in priors_list]
         # These two parameters are used for RSA/SMG testing
-        self.ps = pers_sensitivity 
+        self.ps = pers_sensitivity
         self.ws = world_sensitivity
 
     def smg_like_dup_utility(self, perss: list, utt: str, socs: list):
@@ -421,21 +433,17 @@ class DupSpeaker(HonestNdivSpeaker):
 
 
 class Listener(Player):
-    def __init__(self, priors: Priors, 
-    alpha=1, 
-    beta=1, 
-    pers_sensitivity = 1, 
-    world_sensitivity = 1) -> None:
+    def __init__(
+        self, priors: Priors, alpha=1, beta=1, pers_sensitivity=1, world_sensitivity=1
+    ) -> None:
         super().__init__(priors)
-        self._speaker = HonestNdivSpeaker(priors, 
-            alpha, 
-            beta, 
-            pers_sensitivity, 
-            world_sensitivity)
+        self._speaker = HonestNdivSpeaker(
+            priors, alpha, beta, pers_sensitivity, world_sensitivity
+        )
         self.alpha = alpha
         self.beta = beta
         # These two parameters are used for RSA/SMG testing
-        self.ps = pers_sensitivity 
+        self.ps = pers_sensitivity
         self.ws = world_sensitivity
 
     def l1_world_interpretation(self, world: str, utt: str, socs: list, lexs: list):

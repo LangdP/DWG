@@ -45,23 +45,24 @@ lis0 = Player(priors)
 # Predictions for pers
 for m in messages:
     print(
-        "When hearing message \'" +
-    m + "\', the probability that a literal listener interprets the persona\
-        displayed by the speaker as being \'\pi\' is equal to: " +
-        str(lis0.general_social_interpretation("pi", m, socs))
-        )
+        "When hearing message '"
+        + m
+        + "', the probability that a literal listener interprets the persona\
+        displayed by the speaker as being '\pi' is equal to: "
+        + str(lis0.general_social_interpretation("pi", m, socs))
+    )
 
 # Predictions for worlds
 rsa_ll_viz(lis0, socs, lexs)
 
 # Constructing the speaker
-speak = HonestNdivSpeaker(priors)
+speak = HonestNdivSpeaker(priors, pers_sensitivity=0)
 
 # Predictions for (worlds, personae) pairs
 speak.full_predictions(socs, lexs)
 
 # Constructing the speaker
-lis1 = Listener(priors)
+lis1 = Listener(priors, pers_sensitivity=0)
 
 # Predictions for (worlds, personae) pairs
 lis1.full_predictions(socs, lexs)
