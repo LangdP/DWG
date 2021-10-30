@@ -511,6 +511,88 @@ class Listener(Player):
                 )
         return preds
 
+# This is the DivListener class. Not quite cagey, but acknowledging 
+# the hardships of communicating to a diverse crowd.
+class DivListener(Player):
+    def __init__(
+        self, priors: list, 
+        alpha=1, 
+        beta=1, 
+        pers_sensitivity=1, 
+        world_sensitivity=1
+    ) -> None:
+        super().__init__(priors[0])
+        self._speaker = HonestDivSpeaker(
+            priors, alpha, beta, pers_sensitivity, world_sensitivity
+        )
+        self.priors_list = priors
+        self.alpha = alpha
+        self.beta = beta
+        # These two parameters are used for RSA/SMG testing
+        self.ps = pers_sensitivity
+        self.ws = world_sensitivity
+
+    def l1_world_interpretation(self, world: str, utt: str, socs: list, lexs: list):
+        l1_w_given_m = sum(
+            [
+                self._speaker.choice_rule(world, p, utt, socs, lexs)
+                * self.priors["worlds"][world]
+                for p in self.priors["personae"].keys()
+            ]
+        ) / sum(
+            [
+                sum(
+                    [
+                        self._speaker.choice_rule(w, p, utt, socs, lexs)
+                        * self.priors["worlds"][world]
+                        for p in self.priors["personae"].keys()
+                    ]
+                )
+                for w in self.priors["worlds"].keys()
+            ]
+        )
+        return l1_w_given_m
+
+    def l1_pers_interpretation(self, pers: str, utt: str, socs: list, lexs: list):
+        l1_p_given_m = sum(
+            [
+                self._speaker.choice_rule(w, pers, utt, socs, lexs)
+                * self.priors["personae"][pers]
+                for w in self.priors["worlds"].keys()
+            ]
+        ) / sum(
+            [
+                sum(
+                    [
+                        self._speaker.choice_rule(w, p, utt, socs, lexs)
+                        * self.priors["personae"][pers]
+                        for w in self.priors["worlds"].keys()
+                    ]
+                )
+                for p in self.priors["personae"].keys()
+            ]
+        )
+        return l1_p_given_m
+
+    def full_predictions(self, socs: list, lexs: list):
+        messages = list(lexs[0]._utt_dic.keys())
+        worlds = list(self.priors["worlds"].keys())
+        personae = list(self.priors["personae"].keys())
+        preds = {}
+        for m in messages:
+            preds[m] = {}
+            preds[m]["world_interpretation"] = {}
+            preds[m]["personae_interpretation"] = {}
+            for w in worlds:
+                preds[m]["world_interpretation"][w] = self.l1_world_interpretation(
+                    w, m, socs, lexs
+                )
+            for p in personae:
+                preds[m]["personae_interpretation"][p] = self.l1_pers_interpretation(
+                    p, m, socs, lexs
+                )
+        return preds
+
 # This is the ListenerPlus class. We use it in the RSA/SMG demonstration. 
 # It generates L_2.
 

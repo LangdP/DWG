@@ -41,15 +41,27 @@ priors_j = Priors(world_priors_j, pers_priors_j, delta_soc_j, pi_lex_j)
 # lexical standpoint (Lex object) and the social meaning standpoint
 # (Soc object).
 
+#utterances_nrc = {
+#    "mR": {"worlds": ["wR"], "personae": ["piRC"]},
+#    "mNR": {"worlds": ["wNR"], "personae": ["piNRC", "piRC"]},
+#    "mDW": {"worlds": ["wNR"], "personae": ["piNRC", "piRC"]},
+#}
+
 utterances_nrc = {
     "mR": {"worlds": ["wR"], "personae": ["piRC"]},
-    "mNR": {"worlds": ["wNR"], "personae": ["piNRC", "piRC"]},
-    "mDW": {"worlds": ["wNR"], "personae": ["piNRC", "piRC"]},
+    "mNR": {"worlds": ["wNR"], "personae": ["piNRC"]},
+    "mDW": {"worlds": ["wNR"], "personae": ["piNRC"]},
 }
+
+#utterances_rc = {
+#    "mR": {"worlds": ["wR"], "personae": ["piRC"]},
+#    "mNR": {"worlds": ["wNR"], "personae": ["piNRC", "piRC"]},
+#    "mDW": {"worlds": ["wR", "wNR"], "personae": ["piRC"]},
+#}
 
 utterances_rc = {
     "mR": {"worlds": ["wR"], "personae": ["piRC"]},
-    "mNR": {"worlds": ["wNR"], "personae": ["piNRC", "piRC"]},
+    "mNR": {"worlds": ["wNR"], "personae": ["piNRC"]},
     "mDW": {"worlds": ["wR", "wNR"], "personae": ["piRC"]},
 }
 
@@ -100,8 +112,12 @@ lis_viz(L_0_j, socs, lexs)
 lis_viz(L_0_j, socs, lexs, interpretation="personae_interpretation")
 
 # Reg Speaker
-S_Reg = HonestNdivSpeaker(priors_i)
-speak_viz(S_Reg, socs, lexs)
+S_Reg_i = HonestNdivSpeaker(priors_i)
+speak_viz(S_Reg_i, socs, lexs)
+
+# Reg Speaker
+S_Reg_j = HonestNdivSpeaker(priors_j)
+speak_viz(S_Reg_j, socs, lexs)
 
 # Div Speaker
 S_Div = HonestDivSpeaker([priors_i, priors_j])
@@ -118,10 +134,6 @@ lis_viz(Lis_1_j, socs, lexs)
 lis_viz(Lis_1_j, socs, lexs, interpretation="personae_interpretation")
 
 
-Lis_n_i = ListenerPlus(priors_i)
-lis_viz(Lis_n_i, socs, lexs)
-lis_viz(Lis_n_i, socs, lexs, interpretation="personae_interpretation")
-
-Lis_n_j = ListenerPlus(priors_j)
-lis_viz(Lis_n_j, socs, lexs)
-lis_viz(Lis_n_j, socs, lexs, interpretation="personae_interpretation")
+# Duplicitous speaker
+S_Dup = DupSpeaker([priors_i, priors_j], no_world_preferences, no_personae_preferences)
+speak_viz(S_Dup, socs, lexs)
