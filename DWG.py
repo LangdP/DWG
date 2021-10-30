@@ -85,3 +85,43 @@ pers_prefs_priors = {
     "dw_prefs": {"prefs": dw_personae_preferences, "prior": 0.5},
     "npref": {"prefs": no_personae_preferences, "prior": 0.5},
 }
+
+# Testing
+
+# Literal listeners
+L_0_i = Player(priors_i)
+L_0_j = Player(priors_j)
+
+# Vizualize
+lis_viz(L_0_i, socs, lexs)
+lis_viz(L_0_i, socs, lexs, interpretation="personae_interpretation")
+
+lis_viz(L_0_j, socs, lexs)
+lis_viz(L_0_j, socs, lexs, interpretation="personae_interpretation")
+
+# Reg Speaker
+S_Reg = HonestNdivSpeaker(priors_i)
+speak_viz(S_Reg, socs, lexs)
+
+# Div Speaker
+S_Div = HonestDivSpeaker([priors_i, priors_j])
+speak_viz(S_Div, socs, lexs)
+
+# Pragmatic Listeners
+Lis_1_i = Listener(priors_i)
+lis_viz(Lis_1_i, socs, lexs)
+lis_viz(Lis_1_i, socs, lexs, interpretation="personae_interpretation")
+
+
+Lis_1_j = Listener(priors_j)
+lis_viz(Lis_1_j, socs, lexs)
+lis_viz(Lis_1_j, socs, lexs, interpretation="personae_interpretation")
+
+
+Lis_n_i = ListenerPlus(priors_i)
+lis_viz(Lis_n_i, socs, lexs)
+lis_viz(Lis_n_i, socs, lexs, interpretation="personae_interpretation")
+
+Lis_n_j = ListenerPlus(priors_j)
+lis_viz(Lis_n_j, socs, lexs)
+lis_viz(Lis_n_j, socs, lexs, interpretation="personae_interpretation")
