@@ -6,12 +6,10 @@ from helpers import *
 from lexica import *
 from viz import *
 
-
 # Available messages
-messages = ["none", "some", "all"]
+messages = ["some", "all"]
 
 meanings = {
-    "none": {"worlds": ["w0"], "personae": ["pi"]},
     "some": {"worlds": ["w1", "w2", "w3"], "personae": ["pi"]},
     "all": {"worlds": ["w3"], "personae": ["pi"]},
 }
@@ -19,10 +17,9 @@ meanings = {
 # Setting the priors.
 # Define priors over possible worlds here, they have to add up to 1.
 world_priors = {
-    "w0": 1 / 4,
-    "w1": 1 / 4,
-    "w2": 1 / 4,
-    "w3": 1 / 4,
+    "w1": 1 / 3,
+    "w2": 1 / 3,
+    "w3": 1 / 3,
 }
 
 # Define priors over personae here. They have to add up to 1.
@@ -52,8 +49,20 @@ for m in messages:
         + str(lis0.general_social_interpretation("pi", m, socs))
     )
 
-# Predictions for worlds
-rsa_ll_viz(lis0, socs, lexs)
+# Predictions for worlds + fails
+lis_viz(lis0, socs, lexs, savename="")
+
+speak_fail = HonestNdivSpeaker(priors)
+speak_viz(speak_fail, socs, lexs, savename="speak_fail.tex", show=False)
+
+lis_fail = Listener(priors)
+lis_viz(lis_fail, socs, lexs, savename="lis_fail.tex", show=False)
+
+speak_fail_plus = HonestNdivSpeakerPlus(priors)
+speak_viz(speak_fail_plus, socs, lexs, savename="speak_fail2.tex", show=False)
+
+lis_fail_plus = ListenerPlus(priors)
+lis_viz(lis_fail_plus, socs, lexs, savename="lis_fail2.tex", show=False)
 
 # Constructing the speaker
 speak = HonestNdivSpeaker(priors, pers_sensitivity=0)
