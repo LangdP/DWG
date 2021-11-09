@@ -85,18 +85,6 @@ dw_personae_preferences = preferences_generation(
 no_world_preferences = preferences_generation(list(world_priors_i.keys()))
 no_personae_preferences = preferences_generation(list(pers_priors_i.keys()))
 
-# Constructing the probabilty distribution on priors for the uncovering cagey
-# listener
-
-worlds_prefs_priors = {
-    "dw_prefs": {"prefs": dw_world_preferences, "prior": 0.5},
-    "npref": {"prefs": no_world_preferences, "prior": 0.5},
-}
-
-pers_prefs_priors = {
-    "dw_prefs": {"prefs": dw_personae_preferences, "prior": 0.5},
-    "npref": {"prefs": no_personae_preferences, "prior": 0.5},
-}
 
 # Testing
 
@@ -124,16 +112,68 @@ S_Div = HonestDivSpeaker([priors_i, priors_j])
 speak_viz(S_Div, socs, lexs)
 
 # Pragmatic Listeners
-Lis_1_i = Listener(priors_i)
-lis_viz(Lis_1_i, socs, lexs)
-lis_viz(Lis_1_i, socs, lexs, interpretation="personae_interpretation")
+Lis_2_i = Listener(priors_i)
+lis_viz(Lis_2_i, socs, lexs)
+lis_viz_save(Lis_2_i, socs, lexs, 
+            savename="dwg-div-semli.tex")
+lis_viz(Lis_2_i, socs, lexs, interpretation="personae_interpretation")
+lis_viz_save(Lis_2_i, socs, lexs, 
+            savename="dwg-div-socli.tex", interpretation="personae_interpretation")
 
 
-Lis_1_j = Listener(priors_j)
-lis_viz(Lis_1_j, socs, lexs)
-lis_viz(Lis_1_j, socs, lexs, interpretation="personae_interpretation")
+Lis_2_j = Listener(priors_j)
+lis_viz(Lis_2_j, socs, lexs)
+lis_viz_save(Lis_2_j, socs, lexs, 
+            savename="dwg-div-semlo.tex")
+lis_viz(Lis_2_j, socs, lexs, interpretation="personae_interpretation")
+lis_viz_save(Lis_2_j, socs, lexs, 
+            savename="dwg-div-soclo.tex", interpretation="personae_interpretation")
 
+#L_2
+Lis_2_i = ListenerPlus(priors_i)
+lis_viz(Lis_2_i, socs, lexs)
+lis_viz_save(Lis_2_i, socs, lexs, 
+            savename="dwg-div-semli2.tex")
+lis_viz(Lis_2_i, socs, lexs, interpretation="personae_interpretation")
+lis_viz_save(Lis_2_i, socs, lexs, 
+            savename="dwg-div-socli2.tex", interpretation="personae_interpretation")
+
+
+Lis_2_j = ListenerPlus(priors_j)
+lis_viz(Lis_2_j, socs, lexs)
+lis_viz_save(Lis_2_j, socs, lexs, 
+            savename="dwg-div-semlo2.tex")
+lis_viz(Lis_2_j, socs, lexs, interpretation="personae_interpretation")
+lis_viz_save(Lis_2_j, socs, lexs, 
+            savename="dwg-div-soclo2.tex", interpretation="personae_interpretation")
 
 # Duplicitous speaker
-S_Dup = DupSpeaker([priors_i, priors_j], no_world_preferences, no_personae_preferences)
+S_Dup = DupSpeaker([priors_i, priors_j], 
+                    no_world_preferences, no_personae_preferences)
 speak_viz(S_Dup, socs, lexs)
+
+# DW Duplicitous speaker
+S_Dup = DupSpeaker([priors_i, priors_j], 
+                    dw_world_preferences, dw_personae_preferences)
+speak_viz(S_Dup, socs, lexs)
+
+# Cagey Listener
+# Constructing the probabilty distribution on priors for the uncovering cagey
+# listener
+
+worlds_prefs_priors = {
+    "dw_prefs": {"prefs": dw_world_preferences, "prior": 0.5},
+    "npref": {"prefs": no_world_preferences, "prior": 0.5},
+}
+
+pers_prefs_priors = {
+    "dw_prefs": {"prefs": dw_personae_preferences, "prior": 0.5},
+    "npref": {"prefs": no_personae_preferences, "prior": 0.5},
+}
+
+L_Cag = CageyListener([priors_i, priors_j], 
+                        no_world_preferences, no_personae_preferences)
+
+
+L_Cag_u = UncovCageyListener([priors_i, priors_j], 
+                            worlds_prefs_priors, pers_prefs_priors)

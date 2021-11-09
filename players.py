@@ -359,16 +359,22 @@ class DupSpeaker(HonestNdivSpeaker):
         self, worlds: list, perss: list, utt: str, socs: list, lexs: list
     ):
         messages = list(lexs[0]._utt_dic.keys())
-        return (
-            exp(self.alpha * self.rsa_like_dup_utility(worlds, utt, socs, lexs))
-            + exp(self.beta * self.smg_like_dup_utility(perss, utt, socs))
-        ) / sum(
-            [
-                exp(self.alpha * self.rsa_like_dup_utility(worlds, m, socs, lexs))
-                + exp(self.beta * self.smg_like_dup_utility(perss, m, socs))
-                for m in messages
-            ]
-        )
+        try:
+            result = (
+                exp(self.alpha * self.rsa_like_dup_utility(worlds, utt, socs, lexs))
+                + exp(self.beta * self.smg_like_dup_utility(perss, utt, socs))
+            ) / sum(
+                [
+                    exp(self.alpha * self.rsa_like_dup_utility(worlds, m, socs, lexs))
+                    + exp(self.beta * self.smg_like_dup_utility(perss, m, socs))
+                    for m in messages
+                ]
+            )
+        except ZeroDivisionError:
+            print("There is at least one impossible situation.")
+            result = 0
+
+        return result
 
     def _normalize(self, vals: list):
         sm_vals = []

@@ -50,28 +50,40 @@ for m in messages:
     )
 
 # Predictions for worlds + fails
-lis_viz(lis0, socs, lexs, savename="")
+lis_viz(lis0, socs, lexs)
 
 speak_fail = HonestNdivSpeaker(priors)
-speak_viz(speak_fail, socs, lexs, savename="speak_fail.tex", show=False)
+speak_viz(speak_fail, socs, lexs)
 
 lis_fail = Listener(priors)
-lis_viz(lis_fail, socs, lexs, savename="lis_fail.tex", show=False)
+lis_viz(lis_fail, socs, lexs)
 
 speak_fail_plus = HonestNdivSpeakerPlus(priors)
-speak_viz(speak_fail_plus, socs, lexs, savename="speak_fail2.tex", show=False)
+speak_viz(speak_fail_plus, socs, lexs)
 
 lis_fail_plus = ListenerPlus(priors)
-lis_viz(lis_fail_plus, socs, lexs, savename="lis_fail2.tex", show=False)
+lis_viz(lis_fail_plus, socs, lexs)
 
 # Constructing the speaker
 speak = HonestNdivSpeaker(priors, pers_sensitivity=0)
 
 # Predictions for (worlds, personae) pairs
 speak.full_predictions(socs, lexs)
+speak_viz(speak, socs, lexs)
+speak_viz_save(speak, socs, lexs, "rsa-solved-speak.tex")
 
 # Constructing the speaker
 lis1 = Listener(priors, pers_sensitivity=0)
 
 # Predictions for (worlds, personae) pairs
 lis1.full_predictions(socs, lexs)
+lis_viz(lis1, socs, lexs)
+lis_viz_save(lis1, socs, lexs, "rsa-solved-lis.tex")
+
+speak_plus = HonestNdivSpeakerPlus(priors, pers_sensitivity=0)
+speak_viz(speak_plus, socs, lexs)
+speak_viz_save(speak_plus, socs, lexs, "rsa-solved-speak2.tex")
+
+lis_plus = ListenerPlus(priors, pers_sensitivity=0)
+lis_viz(lis_plus, socs, lexs)
+lis_viz_save(lis_plus, socs, lexs, "rsa-solved-lis2.tex")
