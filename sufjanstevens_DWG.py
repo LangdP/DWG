@@ -12,72 +12,60 @@ from viz import *
 
 # For gay friendly reader
 # Define priors over possible worlds here, they have to add up to 1.
-world_priors_gf = {"wM": 0.5, "wF": 0.5}
+world_priors_q = {"w_m": 0.5, "w_jc": 0.5}
 
 # Define priors over personae here. They have to add up to 1.
-pers_priors_gf = {"piGP": 0.5, "piSP": 0.5}
+pers_priors_q = {"piQS": 0.5, "piCS": 0.5}
 
-delta_soc_gf = {"soc_GF": 1, "soc_SD": 0}
+delta_soc_q = {"soc_Q": 1, "soc_CH": 0}
 
-pi_lex_gf = {"piGP": {"lex_GP": 1, "lex_SP": 0}, "piSP": {"lex_GP": 0, "lex_SP": 1}}
+pi_lex_q = {"piQS": {"lex_QS": 1, "lex_CS": 0}, "piCS": {"lex_QS": 0, "lex_CS": 1}}
 
 # Build priors as an instance of the Priors class.
-priors_gf = Priors(world_priors_gf, pers_priors_gf, delta_soc_gf, pi_lex_gf)
+priors_q = Priors(world_priors_q, pers_priors_q, delta_soc_q, pi_lex_q)
 
 # For straight default reader
 # Define priors over possible worlds here, they have to add up to 1.
-world_priors_sd = {"wM": 0.5, "wF": 0.5}
+world_priors_ch = {"w_m": 0.5, "w_jc": 0.5}
 
 # Define priors over personae here. They have to add up to 1.
-pers_priors_sd = {"piGP": 0.5, "piSP": 0.5}
+pers_priors_ch = {"piQS": 0.5, "piCS": 0.5}
 
-delta_soc_sd = {"soc_GF": 0, "soc_SD": 1}
+delta_soc_ch = {"soc_Q": 0, "soc_CH": 1}
 
-pi_lex_sd = {"piGP": {"lex_GP": 1, "lex_SP": 0}, "piSP": {"lex_GP": 0, "lex_SP": 1}}
+pi_lex_ch = {"piQS": {"lex_QS": 1, "lex_CS": 0}, "piCS": {"lex_QS": 0, "lex_CS": 1}}
 
 # Build priors as an instance of the Priors class.
-priors_sd = Priors(world_priors_sd, pers_priors_sd, delta_soc_sd, pi_lex_sd)
+priors_ch = Priors(world_priors_ch, pers_priors_ch, delta_soc_ch, pi_lex_ch)
 
 # Build utterances, one per preferred indexation/interpretation function
 # for each player
 
-utterances_gf = {
-    "lover": {"worlds": ["wM"], "personae": ["piGP", "piSP"]},
-    "donna": {"worlds": ["wF"], "personae": ["piSP"]},
-    "gallant": {"worlds": ["wM"], "personae": ["piGP"]},
+utterances_qs = {
+    "you": {"worlds": ["w_m"], "personae": ["piQS", "piCS"]},
+    "lover": {"worlds": ["w_m"], "personae": ["piQS"]},
+    "jesus": {"worlds": ["w_jc"], "personae": ["piCS"]},
 }
 
-utterances_sd = {
-    "lover": {"worlds": ["wF"], "personae": ["piSP"]},
-    "donna": {"worlds": ["wF"], "personae": ["piSP"]},
-    "gallant": {"worlds": ["wM"], "personae": ["piGP"]},
+utterances_cs = {
+    "you": {"worlds": ["w_m"], "personae": ["piQS", "piCS"]},
+    "lover": {"worlds": ["w_m"], "personae": ["piQS"]},
+    "jesus": {"worlds": ["w_jc"], "personae": ["piCS"]},
 }
 # Constructing lexica and storing in lists
 
-socs = [Pers(utterances_sd, "soc_SD"), Pers(utterances_gf, "soc_GF")]
-lexs = [Lex(utterances_sd, "lex_SP"), Lex(utterances_gf, "lex_GP")]
+socs = [Pers(utterances_cs, "soc_CH"), Pers(utterances_qs, "soc_Q")]
+lexs = [Lex(utterances_cs, "lex_CS"), Lex(utterances_qs, "lex_QS")]
 
-## Constructing speaker preferences
-# dw_world_preferences = preferences_generation(
-#    list(world_priors_gf.keys()),
-#    preferred_states=[["wR", "wNR"]],
-#    dispreferred_states=[["wNR", "wR"], ["wR", "wR"]],
-# )
-# dw_personae_preferences = preferences_generation(
-#    list(pers_priors_gf.keys()),
-#    preferred_states=[["piRC", "piNRC"]],
-#    dispreferred_states=[["piNRC", "piRC"], ["piRC", "piRC"]],
-# )
-
-no_world_preferences = preferences_generation(list(world_priors_gf.keys()))
-no_personae_preferences = preferences_generation(list(pers_priors_gf.keys()))
+no_world_preferences = preferences_generation(list(world_priors_q.keys()))
+no_personae_preferences = preferences_generation(list(pers_priors_q.keys()))
 
 
 # Testing
 
 # Literal listeners
-L_0_gf = Player(priors_gf)
-L_0_sd = Player(priors_sd)
+L_0_gf = Player(priors_q)
+L_0_sd = Player(priors_ch)
 
 # Vizualize
 lis_viz(L_0_gf, socs, lexs)
@@ -87,37 +75,37 @@ lis_viz(L_0_sd, socs, lexs)
 lis_viz(L_0_sd, socs, lexs, interpretation="personae_interpretation")
 
 # Reg Speaker
-S_Reg_gf = HonestNdivSpeaker(priors_gf)
+S_Reg_gf = HonestNdivSpeaker(priors_q)
 speak_viz(S_Reg_gf, socs, lexs)
 
 # Reg Speaker
-S_Reg_sd = HonestNdivSpeaker(priors_sd)
+S_Reg_sd = HonestNdivSpeaker(priors_ch)
 speak_viz(S_Reg_sd, socs, lexs)
 
 # Div Speaker
-S_Div = HonestDivSpeaker([priors_gf, priors_sd])
+S_Div = HonestDivSpeaker([priors_q, priors_ch])
 speak_viz(S_Div, socs, lexs)
 
 # Pragmatic Listeners
-Lis_1_gf = Listener(priors_gf)
+Lis_1_gf = Listener(priors_q)
 
 lis_viz(Lis_1_gf, socs, lexs)
 lis_viz(Lis_1_gf, socs, lexs, interpretation="personae_interpretation")
 
 
-Lis_1_sd = Listener(priors_sd)
+Lis_1_sd = Listener(priors_ch)
 
 lis_viz(Lis_1_sd, socs, lexs)
 lis_viz(Lis_1_sd, socs, lexs, interpretation="personae_interpretation")
 
 # L_2
-Lis_2_gf = ListenerPlus(priors_gf)
+Lis_2_gf = ListenerPlus(priors_q)
 
 lis_viz(Lis_2_gf, socs, lexs)
 lis_viz(Lis_2_gf, socs, lexs, interpretation="personae_interpretation")
 
 
-Lis_2_sd = ListenerPlus(priors_sd)
+Lis_2_sd = ListenerPlus(priors_ch)
 
 lis_viz(Lis_2_sd, socs, lexs)
 lis_viz(Lis_2_sd, socs, lexs, interpretation="personae_interpretation")
@@ -164,7 +152,7 @@ lis_viz(Lis_1_sgf, socs, lexs, interpretation="personae_interpretation")
 # }
 #
 L_Cag = CageyListener(
-    [priors_gf, priors_sd], no_world_preferences, no_personae_preferences
+    [priors_q, priors_ch], no_world_preferences, no_personae_preferences
 )
 
 # L_Cag_u = UncovCageyListener([priors_gf, priors_sd],
