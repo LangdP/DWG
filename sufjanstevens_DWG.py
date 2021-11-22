@@ -48,7 +48,7 @@ utterances_qs = {
 }
 
 utterances_cs = {
-    "you": {"worlds": ["w_m"], "personae": ["piQS", "piCS"]},
+    "you": {"worlds": ["w_jc"], "personae": ["piQS", "piCS"]},
     "lover": {"worlds": ["w_m"], "personae": ["piQS"]},
     "jesus": {"worlds": ["w_jc"], "personae": ["piCS"]},
 }
@@ -64,15 +64,15 @@ no_personae_preferences = preferences_generation(list(pers_priors_q.keys()))
 # Testing
 
 # Literal listeners
-L_0_gf = Player(priors_q)
-L_0_sd = Player(priors_ch)
+L_0_q = Player(priors_q)
+L_0_c = Player(priors_ch)
 
 # Vizualize
-lis_viz(L_0_gf, socs, lexs)
-lis_viz(L_0_gf, socs, lexs, interpretation="personae_interpretation")
+lis_viz(L_0_q, socs, lexs)
+lis_viz(L_0_q, socs, lexs, interpretation="personae_interpretation")
 
-lis_viz(L_0_sd, socs, lexs)
-lis_viz(L_0_sd, socs, lexs, interpretation="personae_interpretation")
+lis_viz(L_0_c, socs, lexs)
+lis_viz(L_0_c, socs, lexs, interpretation="personae_interpretation")
 
 # Reg Speaker
 S_Reg_gf = HonestNdivSpeaker(priors_q)
@@ -87,16 +87,16 @@ S_Div = HonestDivSpeaker([priors_q, priors_ch])
 speak_viz(S_Div, socs, lexs)
 
 # Pragmatic Listeners
-Lis_1_gf = Listener(priors_q)
+Lis_1_q = Listener(priors_q)
 
-lis_viz(Lis_1_gf, socs, lexs)
-lis_viz(Lis_1_gf, socs, lexs, interpretation="personae_interpretation")
+lis_viz(Lis_1_q, socs, lexs)
+lis_viz(Lis_1_q, socs, lexs, interpretation="personae_interpretation")
 
 
-Lis_1_sd = Listener(priors_ch)
+Lis_1_c = Listener(priors_ch)
 
-lis_viz(Lis_1_sd, socs, lexs)
-lis_viz(Lis_1_sd, socs, lexs, interpretation="personae_interpretation")
+lis_viz(Lis_1_c, socs, lexs)
+lis_viz(Lis_1_c, socs, lexs, interpretation="personae_interpretation")
 
 # L_2
 Lis_2_gf = ListenerPlus(priors_q)
