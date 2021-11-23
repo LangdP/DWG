@@ -6,6 +6,7 @@ from players import *
 from lexica import *
 from helpers import *
 from viz import *
+from pprint import pprint
 
 # We first have to define the priors for each listener, in the form of two
 # dictionaries. The dictionaries are then merged into a Priors object.
@@ -42,7 +43,7 @@ priors_ch = Priors(world_priors_ch, pers_priors_ch, delta_soc_ch, pi_lex_ch)
 # for each player
 
 utterances_qs = {
-    "you": {"worlds": ["w_m"], "personae": ["piQS", "piCS"]},
+    "you": {"worlds": ["w_m"], "personae": ["piQS"]},
     "lover": {"worlds": ["w_m"], "personae": ["piQS"]},
     "jesus": {"worlds": ["w_jc"], "personae": ["piCS"]},
 }
@@ -75,12 +76,12 @@ lis_viz(L_0_c, socs, lexs)
 lis_viz(L_0_c, socs, lexs, interpretation="personae_interpretation")
 
 # Reg Speaker
-S_Reg_gf = HonestNdivSpeaker(priors_q)
-speak_viz(S_Reg_gf, socs, lexs)
+S_Reg_qs = HonestNdivSpeaker(priors_q)
+speak_viz(S_Reg_qs, socs, lexs)
 
 # Reg Speaker
-S_Reg_sd = HonestNdivSpeaker(priors_ch)
-speak_viz(S_Reg_sd, socs, lexs)
+S_Reg_cs = HonestNdivSpeaker(priors_ch)
+speak_viz(S_Reg_cs, socs, lexs)
 
 # Div Speaker
 S_Div = HonestDivSpeaker([priors_q, priors_ch])
@@ -110,50 +111,30 @@ Lis_2_sd = ListenerPlus(priors_ch)
 lis_viz(Lis_2_sd, socs, lexs)
 lis_viz(Lis_2_sd, socs, lexs, interpretation="personae_interpretation")
 
-# For super gay friendly reader
-# Define priors over possible worlds here, they have to add up to 1.
-world_priors_sgf = {"wM": 0.5, "wF": 0.5}
+# S_Dup, Sufjan himself
+Suf = DupSpeaker([priors_q, priors_ch], 
+                    no_world_preferences, 
+                    no_personae_preferences)
 
-# Define priors over personae here. They have to add up to 1.
-pers_priors_sgf = {"piGP": 0.8, "piSP": 0.2}
+# Printing results one by one to identify anomalies
 
-delta_soc_sgf = {"soc_GF": 1, "soc_SD": 0}
+w = ["w_m", "w_jc"]
+p = ["piQS", "piCS"]
+situations = list(
+    product(
+        truthtable(2, w), 
+        truthtable(2, p)
+        )
+    )
 
-pi_lex_sgf = {"piGP": {"lex_GP": 1, "lex_SP": 0}, "piSP": {"lex_GP": 0, "lex_SP": 1}}
-
-# Build priors as an instance of the Priors class.
-priors_sgf = Priors(world_priors_sgf, pers_priors_sgf, delta_soc_sgf, pi_lex_sgf)
-
-# Literal listeners
-L_0_sgf = Player(priors_sgf)
-lis_viz(L_0_sgf, socs, lexs)
-lis_viz(L_0_sgf, socs, lexs, interpretation="personae_interpretation")
-
-S_Reg_sgf = HonestNdivSpeaker(priors_sgf)
-speak_viz(S_Reg_sgf, socs, lexs)
-
-Lis_1_sgf = Listener(priors_sgf)
-lis_viz(Lis_1_sgf, socs, lexs)
-lis_viz(Lis_1_sgf, socs, lexs, interpretation="personae_interpretation")
-
+for u in ["you", "lover", "jesus"]:
+    print("Results for " + u + ":\n")
+    for s in situations:
+        print("Here is what we have for situation " + str(s) + ":\n")
+        pprint(Suf.dup_choice_rule(s[0], s[1], u, socs, lexs))
+        
 
 # Scholarly reader
-# Constructing the probabilty distribution on priors for the uncovering cagey
-# listener
-
-# worlds_prefs_priors = {
-#    "dw_prefs": {"prefs": dw_world_preferences, "prior": 0.5},
-#    "npref": {"prefs": no_world_preferences, "prior": 0.5},
-# }
-#
-# pers_prefs_priors = {
-#    "dw_prefs": {"prefs": dw_personae_preferences, "prior": 0.5},
-#    "npref": {"prefs": no_personae_preferences, "prior": 0.5},
-# }
-#
 L_Cag = CageyListener(
     [priors_q, priors_ch], no_world_preferences, no_personae_preferences
 )
-
-# L_Cag_u = UncovCageyListener([priors_gf, priors_sd],
-#                            worlds_prefs_priors, pers_prefs_priors)
