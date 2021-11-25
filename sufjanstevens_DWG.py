@@ -58,6 +58,19 @@ utterances_cs = {
 socs = [Pers(utterances_cs, "soc_CH"), Pers(utterances_qs, "soc_Q")]
 lexs = [Lex(utterances_cs, "lex_CS"), Lex(utterances_qs, "lex_QS")]
 
+# Constructing speaker preferences
+dw_world_preferences = preferences_generation(
+    list(world_priors_q.keys()),
+    preferred_states=[["w_m", "w_jc"], ["w_jc", "w_m"]],
+    dispreferred_states=[],
+)
+dw_personae_preferences = preferences_generation(
+    list(pers_priors_ch.keys()),
+    preferred_states=[["piQS", "piCS"], ["piCS", "piQS"]],
+    dispreferred_states=[],
+)
+
+
 no_world_preferences = preferences_generation(list(world_priors_q.keys()))
 no_personae_preferences = preferences_generation(list(pers_priors_q.keys()))
 
@@ -116,23 +129,9 @@ Suf = DupSpeaker([priors_q, priors_ch],
                     no_world_preferences, 
                     no_personae_preferences)
 
-# Printing results one by one to identify anomalies
-
-w = ["w_m", "w_jc"]
-p = ["piQS", "piCS"]
-situations = list(
-    product(
-        truthtable(2, w), 
-        truthtable(2, p)
-        )
-    )
-
-for u in ["you", "lover", "jesus"]:
-    print("Results for " + u + ":\n")
-    for s in situations:
-        print("Here is what we have for situation " + str(s) + ":\n")
-        pprint(Suf.dup_choice_rule(s[0], s[1], u, socs, lexs))
-        
+Suf_prefs = DupSpeaker([priors_q, priors_ch], 
+                    dw_world_preferences, 
+                    dw_personae_preferences)
 
 # Scholarly reader
 L_Cag = CageyListener(
