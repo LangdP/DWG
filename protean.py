@@ -32,48 +32,60 @@ priors_r = Priors(world_priors_r, pers_priors_r, delta_soc_r, pi_lex_r)
 
 # For straight default reader
 # Define priors over possible worlds here, they have to add up to 1.
-world_priors_ch = {"w_m": 0.5, "w_jc": 0.5}
+world_priors_l = {"w_e": 1/5, 
+"w_ee": 1/5,
+"w_s": 1/5,
+"w_m": 1/5,
+"w_d": 1/5,
+}
 
 # Define priors over personae here. They have to add up to 1.
-pers_priors_ch = {"piQS": 0.5, "piCS": 0.5}
+pers_priors_l = {"piRC": 0.5, "piNRC": 0.5}
 
-delta_soc_ch = {"soc_Q": 0, "soc_CH": 1}
+delta_soc_l = {"soc_R": 0, "soc_L": 1}
 
-pi_lex_ch = {"piQS": {"lex_QS": 1, "lex_CS": 0}, "piCS": {"lex_QS": 0, "lex_CS": 1}}
+pi_lex_l = {"piRC": {"lex_RC": 0, "lex_NRC": 1}, "piNRC": {"lex_RC": 0, "lex_NRC": 1}}
 
 # Build priors as an instance of the Priors class.
-priors_ch = Priors(world_priors_ch, pers_priors_ch, delta_soc_ch, pi_lex_ch)
+priors_l = Priors(world_priors_l, pers_priors_l, delta_soc_l, pi_lex_l)
+
 
 # Build utterances, one per preferred indexation/interpretation function
 # for each player
 
-utterances_qs = {
-    "you": {"worlds": ["w_m"], "personae": ["piQS"]},
-    "lover": {"worlds": ["w_m"], "personae": ["piQS"]},
-    "jesus": {"worlds": ["w_jc"], "personae": ["piCS"]},
+utterances_rc = {
+    "immigration": {"worlds": ["w_e", "w_ee", "w_s", "w_m", "w_d"], "personae": ["piRC"]},
+    "eur": {"worlds": ["w_e", "w_ee"], "personae": ["piNRC"]},
+    "e-eur": {"worlds": ["w_ee"], "personae": ["piNRC"]},
+    "syr": {"worlds": ["w_s"], "personae": ["piRC"]},
+    "mus": {"worlds": ["w_m"], "personae": ["piRC"]},
+    "drk": {"worlds": ["w_d"], "personae": ["piRC"]},
 }
 
-utterances_cs = {
-    "you": {"worlds": ["w_jc"], "personae": ["piQS", "piCS"]},
-    "lover": {"worlds": ["w_m"], "personae": ["piQS"]},
-    "jesus": {"worlds": ["w_jc"], "personae": ["piCS"]},
+utterances_nrc = {
+    "immigration": {"worlds": ["w_e", "w_ee", "w_s"], "personae": ["piNRC"]},
+    "eur": {"worlds": ["w_e", "w_ee"], "personae": ["piNRC"]},
+    "e-eur": {"worlds": ["w_ee"], "personae": ["piRC"]},
+    "syr": {"worlds": ["w_s"], "personae": ["piRC"]},
+    "mus": {"worlds": ["w_m"], "personae": ["piRC"]},
+    "drk": {"worlds": ["w_d"], "personae": ["piRC"]},
 }
 # Constructing lexica and storing in lists
 
-socs = [Pers(utterances_cs, "soc_CH"), Pers(utterances_qs, "soc_Q")]
-lexs = [Lex(utterances_cs, "lex_CS"), Lex(utterances_qs, "lex_QS")]
+socs = [Pers(utterances_nrc, "soc_L"), Pers(utterances_rc, "soc_R")]
+lexs = [Lex(utterances_nrc, "lex_NRC"), Lex(utterances_rc, "lex_RC")]
 
 # Constructing speaker preferences
-dw_world_preferences = preferences_generation(
-    list(world_priors_r.keys()),
-    preferred_states=[["w_m", "w_jc"], ["w_jc", "w_m"]],
-    dispreferred_states=[],
-)
-dw_personae_preferences = preferences_generation(
-    list(pers_priors_ch.keys()),
-    preferred_states=[["piQS", "piCS"], ["piCS", "piQS"]],
-    dispreferred_states=[],
-)
+#dw_world_preferences = preferences_generation(
+#    list(world_priors_r.keys()),
+#    preferred_states=[["w_m", "w_jc"], ["w_jc", "w_m"]],
+#    dispreferred_states=[],
+#)
+#dw_personae_preferences = preferences_generation(
+#    list(pers_priors_l.keys()),
+#    preferred_states=[["piQS", "piCS"], ["piCS", "piQS"]],
+#    dispreferred_states=[],
+#)
 
 
 no_world_preferences = preferences_generation(list(world_priors_r.keys()))
@@ -81,64 +93,82 @@ no_personae_preferences = preferences_generation(list(pers_priors_r.keys()))
 
 
 # Testing
-
 # Literal listeners
-L_0_q = Player(priors_r)
-L_0_c = Player(priors_ch)
+L_0_r = Player(priors_r)
+L_0_l = Player(priors_l)
 
 # Vizualize
-lis_viz(L_0_q, socs, lexs)
-lis_viz(L_0_q, socs, lexs, interpretation="personae_interpretation")
+lis_viz(L_0_r, socs, lexs)
+lis_viz(L_0_r, socs, lexs, interpretation="personae_interpretation")
 
-lis_viz(L_0_c, socs, lexs)
-lis_viz(L_0_c, socs, lexs, interpretation="personae_interpretation")
-
-# Reg Speaker
-S_Reg_qs = HonestNdivSpeaker(priors_r)
-speak_viz(S_Reg_qs, socs, lexs)
+lis_viz(L_0_l, socs, lexs)
+lis_viz(L_0_l, socs, lexs, interpretation="personae_interpretation")
 
 # Reg Speaker
-S_Reg_cs = HonestNdivSpeaker(priors_ch)
-speak_viz(S_Reg_cs, socs, lexs)
+S_Reg_rc = HonestNdivSpeaker(priors_r)
+speak_viz(S_Reg_rc, socs, lexs)
+
+# Reg Speaker
+S_Reg_nrc = HonestNdivSpeaker(priors_l)
+speak_viz(S_Reg_nrc, socs, lexs)
 
 # Div Speaker
-S_Div = HonestDivSpeaker([priors_r, priors_ch])
+S_Div = HonestDivSpeaker([priors_r, priors_l])
 speak_viz(S_Div, socs, lexs)
 
 # Pragmatic Listeners
-Lis_1_q = Listener(priors_r)
+Lis_1_r = Listener(priors_r)
 
-lis_viz(Lis_1_q, socs, lexs)
-lis_viz(Lis_1_q, socs, lexs, interpretation="personae_interpretation")
+lis_viz(Lis_1_r, socs, lexs)
+lis_viz(Lis_1_r, socs, lexs, interpretation="personae_interpretation")
+
+lis_viz_save(Lis_1_r, socs, lexs, "protean-semlis-r.tex")
+lis_viz_save(Lis_1_r, socs, lexs, "protean-soclis-r.tex", 
+            interpretation="personae_interpretation")
 
 
-Lis_1_c = Listener(priors_ch)
+Lis_1_l = Listener(priors_l)
 
-lis_viz(Lis_1_c, socs, lexs)
-lis_viz(Lis_1_c, socs, lexs, interpretation="personae_interpretation")
+lis_viz(Lis_1_l, socs, lexs)
+lis_viz(Lis_1_l, socs, lexs, interpretation="personae_interpretation")
+
+lis_viz_save(Lis_1_l, socs, lexs, "protean-semlis-l.tex")
+lis_viz_save(Lis_1_l, socs, lexs, "protean-soclis-l.tex", 
+            interpretation="personae_interpretation")
 
 # L_2
-Lis_2_gf = ListenerPlus(priors_r)
+Lis_2_r = ListenerPlus(priors_r)
 
-lis_viz(Lis_2_gf, socs, lexs)
-lis_viz(Lis_2_gf, socs, lexs, interpretation="personae_interpretation")
+lis_viz(Lis_2_r, socs, lexs)
+lis_viz(Lis_2_r, socs, lexs, interpretation="personae_interpretation")
 
 
-Lis_2_sd = ListenerPlus(priors_ch)
+Lis_2_l = ListenerPlus(priors_l)
 
-lis_viz(Lis_2_sd, socs, lexs)
-lis_viz(Lis_2_sd, socs, lexs, interpretation="personae_interpretation")
+lis_viz(Lis_2_l, socs, lexs)
+lis_viz(Lis_2_l, socs, lexs, interpretation="personae_interpretation")
 
 # S_Dup, Sufjan himself
-Suf = DupSpeaker([priors_r, priors_ch], 
+S_Dup = DupSpeaker([priors_r, priors_l], 
                     no_world_preferences, 
                     no_personae_preferences)
+speak_viz(S_Dup, socs, lexs)
 
-Suf_prefs = DupSpeaker([priors_r, priors_ch], 
-                    dw_world_preferences, 
-                    dw_personae_preferences)
+def most_likely(s, socs, lexs):
+    preds = s.full_predictions(socs, lexs)[0]
+    newdict = {}
+    for c in preds:
+        maximum = max(preds[c],
+            key = preds[c].get)
+        newdict[c] = {maximum : preds[c][maximum]}
+    return newdict
 
+test = S_Div.full_predictions(socs, lexs)
+#Suf_prefs = DupSpeaker([priors_r, priors_l], 
+#                    dw_world_preferences, 
+#                    dw_personae_preferences)
+#
 # Scholarly reader
 L_Cag = CageyListener(
-    [priors_r, priors_ch], no_world_preferences, no_personae_preferences
+    [priors_r, priors_l], no_world_preferences, no_personae_preferences
 )
