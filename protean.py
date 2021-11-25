@@ -163,7 +163,6 @@ def most_likely(s, socs, lexs):
         newdict[c] = {maximum : preds[c][maximum]}
     return newdict
 
-test = S_Div.full_predictions(socs, lexs)
 #Suf_prefs = DupSpeaker([priors_r, priors_l], 
 #                    dw_world_preferences, 
 #                    dw_personae_preferences)
