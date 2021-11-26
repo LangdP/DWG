@@ -70,7 +70,10 @@ def speak_viz(
     socs: list,
     lexs: list,
 ):
-    s1_preds = s1.full_predictions(socs, lexs)
+    if type(s1) == DupSpeaker:
+        s1_preds = s1.full_predictions(socs, lexs)[0]
+    else:
+        s1_preds = s1.full_predictions(socs, lexs)
     df = pd.DataFrame.from_dict(s1_preds, orient="index")
     ax = df.plot.bar(rot=0)
     ax.legend(
